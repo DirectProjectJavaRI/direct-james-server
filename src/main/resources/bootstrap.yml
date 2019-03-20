@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
+    url: jdbc:derby:./var/store/derby;create=true
+    username: app
+    password: app
+    adapter: DERBY 
+    streaming: false 
+#If using an MQ server that is not auto bound, the setting for the MQ service should go here.
+#These place holders assume RabbitMQ is being used.  Systems such as CloudFoundry may support binding
+#RabbitMQ directly.
+
+#  rabbitmq: 
+#    host: 
+#    port:
+#    username: 
+#    password: 
+#    virtual-host:
+  application:
+    name: direct-james-server
+  main:
+    allow-bean-definition-overriding: true  
+    
+eureka:
+  client:
+    enabled: false    
+    
+#If not using Eureka, then set the config-service URL.  This should be set to a empty value
+#if you are using Eureka
+direct:
+  config:
+    service:
+      url: http://localhost:8080/config-service
+      
