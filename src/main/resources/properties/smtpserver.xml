@@ -20,7 +20,7 @@
  -->
 
 <smtpservers>
-    <smtpserver enabled="true">
+    <smtpserver enabled="false">
         <jmxName>smtpserver-global</jmxName>
         <bind>0.0.0.0:1025</bind>
         <connectionBacklog>200</connectionBacklog>
@@ -48,15 +48,14 @@
     </smtpserver>
     <smtpserver enabled="true">
         <jmxName>smtpserver-authenticated</jmxName>
-        <bind>0.0.0.0:1587</bind>
+        <bind>${bind}:${port}</bind>
         <connectionBacklog>200</connectionBacklog>
-        <tls socketTLS="false" startTLS="false">
-            <!-- 
-            <keystore>file://conf/keystore</keystore>
-            <secret>1kingpuff</secret>
+        <tls socketTLS="${socketTLS}" startTLS="${startTLS}">
+	        <keystore>file://conf/keystore</keystore>
+	        <secret>${keystorePassword}</secret>
             <provider>org.bouncycastle.jce.provider.BouncyCastleProvider</provider>
             <algorithm>SunX509</algorithm>
-             -->
+
         </tls>
         <connectiontimeout>360</connectiontimeout>
         <connectionLimit>0</connectionLimit>
@@ -65,7 +64,7 @@
            Authorize only local users
         -->
         <authRequired>true</authRequired>
-        <authorizedAddresses>127.0.0.0/8</authorizedAddresses>
+        <authorizedAddresses>${authAddresses}</authorizedAddresses>
         <!-- Trust authenticated users -->
         <verifyIdentity>false</verifyIdentity>
         <maxmessagesize>0</maxmessagesize>

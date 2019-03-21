@@ -1,4 +1,5 @@
 spring:
+#Update these properties to your own data store if not using Derby
   datasource:
     driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
     url: jdbc:derby:./var/store/derby;create=true
@@ -6,16 +7,17 @@ spring:
     password: app
     adapter: DERBY 
     streaming: false 
-#If using an MQ server that is not auto bound, the setting for the MQ service should go here.
-#These place holders assume RabbitMQ is being used.  Systems such as CloudFoundry may support binding
-#RabbitMQ directly.
-
+#Fill out these properties for your own rabbit MQ instance  
 #  rabbitmq: 
-#    host: 
-#    port:
+#    host:
+#    port: 
 #    username: 
 #    password: 
-#    virtual-host:
+#    virtual-host: 
+#    ssl:
+#      enabled: 
+#      validate-server-certificate: false
+#      verify-hostname: false
   application:
     name: direct-james-server
   main:
@@ -32,3 +34,9 @@ direct:
     service:
       url: http://localhost:8080/config-service
       
+#Default the web admin credentials
+james:
+  server:
+    webadmin:
+      username: admin
+      password: d1r3ct      

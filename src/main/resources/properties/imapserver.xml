@@ -39,22 +39,20 @@
 	   <!-- port 993 is the well-known/IANA registered port for IMAPS  ie over SSL/TLS -->
 	   <!-- Please NOTE: you should add this IP also to your RemoteAddrNotInNetwork -->
 	   <!-- in order to avoid relay check for locally generated bounces -->    
-	   <bind>0.0.0.0:1143</bind>
+	   <bind>${bind}:${port}</bind>
 	    
 	   <connectionBacklog>200</connectionBacklog>
 	    
 	   <!-- Set to true to use TLS for the Socket.
 	         To use this you need to copy sunjce_provider.jar to /path/james/lib directory.
 	    -->
-	   <tls socketTLS="false" startTLS="false">
+	   <tls socketTLS="${socketTLS}" startTLS="${startTLS}">
 	     <!-- To create a new keystore execute:
 	      keytool -genkey -alias james -keyalg RSA -keystore /path/to/james/conf/keystore
 	       -->
-	     <!--  
 	     <keystore>file://conf/keystore</keystore>
-	     <secret>1kingpuff</secret>
+	     <secret>${keystorePassword}</secret>
 	     <provider>org.bouncycastle.jce.provider.BouncyCastleProvider</provider>
-	     -->
 	   </tls>
 	      
 	   <handler>

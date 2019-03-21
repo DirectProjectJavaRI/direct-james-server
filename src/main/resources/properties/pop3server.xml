@@ -20,19 +20,17 @@
 
 
 <pop3servers>
-    <pop3server enabled="false">
+    <pop3server enabled="true">
         <jmxName>pop3server</jmxName>
-        <bind>0.0.0.0:1110</bind>
+        <bind>${bind}:${port}</bind>
         <connectionBacklog>200</connectionBacklog>
-        <tls socketTLS="false" startTLS="false">
+        <tls socketTLS="${socketTLS}" startTLS="${startTLS}">
             <!-- To create a new keystore execute:
                   keytool -genkey -alias james -keyalg RSA -keystore /path/to/james/conf/keystore
              -->
-             <!-- 
-            <keystore>file://conf/keystore</keystore>
-            <secret>1kingpuff</secret>
+	        <keystore>file://conf/keystore</keystore>
+	        <secret>${keystorePassword}</secret>
             <provider>org.bouncycastle.jce.provider.BouncyCastleProvider</provider>
-             -->
         </tls>
         <connectiontimeout>1200</connectiontimeout>
         <connectionLimit>0</connectionLimit>

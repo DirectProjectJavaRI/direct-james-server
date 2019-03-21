@@ -37,14 +37,7 @@
           <name>New BSD License</name>
           <url>http://nhindirect.org/BSDLicense</url>
        </license>
-    </licenses>
-	 <repositories>
-       <repository>
-           <id>spring-milestone</id>
-           <name>Spring Milestone Releases</name>
-           <url>https://repo.spring.io/milestone/</url>
-       </repository>
-    </repositories>          
+    </licenses>   
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -80,49 +73,7 @@
 			    <groupId>io.dropwizard.metrics</groupId>
 			    <artifactId>metrics-jvm</artifactId>
 			    <version>3.2.6</version>
-			</dependency>	
-			<!-- 
-			<dependency>
-			    <groupId>org.apache.james</groupId>
-			    <artifactId>james-core</artifactId>
-			    <version>3.2.0</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.apache.james</groupId>
-			    <artifactId>apache-mailet-base</artifactId>
-			    <version>3.2.0</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.apache.james</groupId>
-			    <artifactId>apache-mailet-api</artifactId>
-			    <version>3.2.0</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.apache.james</groupId>
-			    <artifactId>james-server-mailets</artifactId>
-			    <version>3.2.0</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.apache.james</groupId>
-			    <artifactId>james-mdn</artifactId>
-			    <version>3.2.0</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.apache.james</groupId>
-			    <artifactId>javax-mail-extension</artifactId>
-			    <version>3.2.0</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.hibernate</groupId>
-			    <artifactId>hibernate-core</artifactId>
-			    <version>5.4.1.Final</version>
-			</dependency>
-			<dependency>
-			    <groupId>org.hibernate</groupId>
-			    <artifactId>hibernate-entitymanager</artifactId>
-			    <version>5.4.1.Final</version>
-			</dependency>	
-			 -->																								
+			</dependency>																						
 		</dependencies>
 	</dependencyManagement>		
 	<dependencies>          	        
@@ -170,23 +121,23 @@
 	        <artifactId>config-service-client</artifactId>
 	        <version>6.0</version>
 	    </dependency>	
-  <!--
+
 		<dependency>
 			<groupId>org.nhind</groupId>
 			<artifactId>gateway</artifactId>
-			<version>6.0</version>	
+			<version>6.0.2</version>	
 		    <exclusions>
 		        <exclusion>
 		            <groupId>org.nhind</groupId>
 		            <artifactId>direct-common-audit</artifactId>
-		        </exclusion>
+		        </exclusion>	
 		        <exclusion>
-		            <groupId>org.nhind</groupId>
-		            <artifactId>agent</artifactId>
-		        </exclusion>			        
+		            <groupId>org.apache.james</groupId>
+		            <artifactId>*</artifactId>
+		        </exclusion>			        	        
 		    </exclusions>				
 		</dependency>	
- -->
+
 		<dependency>
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-jpa-guice</artifactId>
@@ -372,7 +323,16 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>			
-			</plugin>				
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+		        <configuration>
+		          <jvmArguments>
+		            -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
+		          </jvmArguments>          
+		        </configuration>				
+			</plugin>						
 			<!--  for releases only 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

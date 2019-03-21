@@ -57,8 +57,11 @@ public class JamesServerConfig
 	public static final String DEFAULT_IMAP_CONFIG = "/properties/imapserver.xml";
 	public static final String DEFAULT_POP3_CONFIG = "/properties/pop3server.xml";
 	public static final String DEFAULT_SMTP_CONFIG = "/properties/smtpserver.xml";
+	public static final String DEFAULT_KEYSTORE = "/properties/keystore";
 	
-	
+	/*
+	 * Data base parameters
+	 */
 	@Value("${spring.datasource.driver-class-name}")
 	protected String driverClassName;
 
@@ -77,6 +80,9 @@ public class JamesServerConfig
 	@Value("${spring.datasource.streaming}")
 	protected String datasourceStreaming;
 	
+	/*
+	 * Web admin parameters
+	 */
 	@Value("${james.server.webadmin.enabled:true}")
 	protected String enableWebAdmin;
 	
@@ -104,6 +110,75 @@ public class JamesServerConfig
 	@Value("${james.server.webadmin.https.trust.keystorePassword:}")
 	protected String webAdminTrustKeystorePassword;
 	
+	/*
+	 * IMAP Settings
+	 */
+	@Value("${james.server.imap.bind:0.0.0.0}")
+	protected String imapBind;
+	
+	@Value("${james.server.imap.port:1143}")
+	protected String imapPort;
+	
+	@Value("${james.server.imap.sockettls:false}")
+	protected String imapSocketTLS;
+	
+	@Value("${james.server.imap.starttls:true}")
+	protected String imapStartTLS;
+	
+	@Value("${james.server.imap.keystore:}")
+	protected String imapKeyStore;
+	
+	@Value("${james.server.imap.keystorePassword:1kingpuff}")
+	protected String imapKeyStorePassword;
+	
+	/*
+	 * POP3 Settings
+	 */
+	@Value("${james.server.pop3.bind:0.0.0.0}")
+	protected String pop3Bind;
+	
+	@Value("${james.server.pop3.port:1110}")
+	protected String pop3Port;
+	
+	@Value("${james.server.pop3.sockettls:false}")
+	protected String pop3SocketTLS;
+	
+	@Value("${james.server.pop3.starttls:true}")
+	protected String pop3StartTLS;
+	
+	@Value("${james.server.pop3.keystore:}")
+	protected String pop3KeyStore;
+	
+	@Value("${james.server.pop3.keystorePassword:1kingpuff}")
+	protected String pop3KeyStorePassword;
+	
+	/*
+	 * SMTP Settings
+	 */
+	@Value("${james.server.smtp.bind:0.0.0.0}")
+	protected String smtpBind;
+	
+	@Value("${james.server.smtp.port:1587}")
+	protected String smtpPort;
+	
+	@Value("${james.server.smtp.sockettls:false}")
+	protected String smtpSocketTLS;
+	
+	@Value("${james.server.smtp.starttls:true}")
+	protected String smtpStartTLS;
+	
+	@Value("${james.server.smtp.keystore:}")
+	protected String smtpKeyStore;
+	
+	@Value("${james.server.smtp.keystorePassword:1kingpuff}")
+	protected String smtpKeyStorePassword;
+	
+	@Value("${james.server.smtp.autoAddresses:127.0.0.0/8}")
+	protected String smtpAuthAddresses;
+	
+	/*
+	 * Custom configuration files
+	 */
 	@Value("${james.server.config.mailet.configFile:}")
 	protected String mailetConfigFile;
 	
@@ -161,7 +236,13 @@ public class JamesServerConfig
 		
 		writeDomainListConfig();
 		
-		writeXMLConfigs();
+		writeMailetConfig();
+		
+		writeIMAPConfig();
+		
+		writePOP3Config();
+		
+		writeSMTPConfig();
 		
 		final org.apache.james.server.core.configuration.Configuration configuration = 
 				org.apache.james.server.core.configuration.Configuration.builder().workingDirectory(".").build();
@@ -234,7 +315,7 @@ public class JamesServerConfig
 		FileUtils.writeAllText(domainlistXML, file);
 	}
 	
-	protected void writeXMLConfigs() throws Exception
+	protected void writeMailetConfig() throws Exception
 	{
 		/*
 		 * Mailet config
@@ -242,26 +323,69 @@ public class JamesServerConfig
 		File writeFile = new File("conf/mailetcontainer.xml");
 		byte[] content = (StringUtils.isEmpty(mailetConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_MAILET_CONFIG) : FileUtils.readAllBytes(new File(mailetConfigFile));
 		FileUtils.writeAllBytes(content, writeFile);
-		
+	}
+	
+	protected void writeIMAPConfig() throws Exception
+	{
 		/*
 		 * IMAP config
 		 */
-		writeFile = new File("conf/imapserver.xml");
-		content = (StringUtils.isEmpty(imapConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_IMAP_CONFIG) : FileUtils.readAllBytes(new File(imapConfigFile));
-		FileUtils.writeAllBytes(content, writeFile);
+		final File configFile = new File("conf/imapserver.xml");
+		String content = (StringUtils.isEmpty(imapConfigFile)) ? IOUtils.resourceToString(DEFAULT_IMAP_CONFIG, Charset.defaultCharset()) : FileUtils.readAllText(new File(imapConfigFile));
 		
+		content = content.replace("${bind}", this.imapBind);
+		content = content.replace("${port}", this.imapPort);
+		content = content.replace("${socketTLS}", this.imapSocketTLS);
+		content = content.replace("${startTLS}", this.imapStartTLS);		
+		content = content.replace("${keystorePassword}", this.imapKeyStorePassword);
+		
+		FileUtils.writeAllText(content, configFile);
+		
+		final File keystoreFile = new File("conf/keystore");
+		byte[] keyStoreContent = (StringUtils.isEmpty(imapKeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readAllBytes(new File(imapKeyStore));
+		FileUtils.writeAllBytes(keyStoreContent, keystoreFile);
+	}
+	
+	protected void writePOP3Config() throws Exception
+	{
 		/*
-		 * IMAP config
+		 * POP3 config
 		 */
-		writeFile = new File("conf/pop3server.xml");
-		content = (StringUtils.isEmpty(pop3ConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_POP3_CONFIG) : FileUtils.readAllBytes(new File(pop3ConfigFile));
-		FileUtils.writeAllBytes(content, writeFile);
+		final File configFile = new File("conf/pop3server.xml");
+		String content = (StringUtils.isEmpty(pop3ConfigFile)) ? IOUtils.resourceToString(DEFAULT_POP3_CONFIG, Charset.defaultCharset()) : FileUtils.readAllText(new File(pop3ConfigFile));
 		
+		content = content.replace("${bind}", this.pop3Bind);
+		content = content.replace("${port}", this.pop3Port);
+		content = content.replace("${socketTLS}", this.pop3SocketTLS);
+		content = content.replace("${startTLS}", this.pop3StartTLS);		
+		content = content.replace("${keystorePassword}", this.pop3KeyStorePassword);
+		
+		FileUtils.writeAllText(content, configFile);
+		
+		final File keystoreFile = new File("conf/keystore");
+		byte[] keyStoreContent = (StringUtils.isEmpty(pop3KeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readAllBytes(new File(pop3KeyStore));
+		FileUtils.writeAllBytes(keyStoreContent, keystoreFile);
+	}
+	
+	protected void writeSMTPConfig() throws Exception
+	{
 		/*
 		 * SMTP config
 		 */
-		writeFile = new File("conf/smtpserver.xml");
-		content = (StringUtils.isEmpty(smtpConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_SMTP_CONFIG) : FileUtils.readAllBytes(new File(smtpConfigFile));
-		FileUtils.writeAllBytes(content, writeFile);
+		final File configFile = new File("conf/smtpserver.xml");
+		String content = (StringUtils.isEmpty(smtpConfigFile)) ? IOUtils.resourceToString(DEFAULT_SMTP_CONFIG, Charset.defaultCharset()) : FileUtils.readAllText(new File(smtpConfigFile));
+		
+		content = content.replace("${bind}", this.smtpBind);
+		content = content.replace("${port}", this.smtpPort);
+		content = content.replace("${socketTLS}", this.smtpSocketTLS);
+		content = content.replace("${startTLS}", this.smtpStartTLS);		
+		content = content.replace("${keystorePassword}", this.smtpKeyStorePassword);
+		content = content.replace("${authAddresses}", this.smtpAuthAddresses);
+		
+		FileUtils.writeAllText(content, configFile);
+		
+		final File keystoreFile = new File("conf/keystore");
+		byte[] keyStoreContent = (StringUtils.isEmpty(smtpKeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readAllBytes(new File(smtpKeyStore));
+		FileUtils.writeAllBytes(keyStoreContent, keystoreFile);
 	}
 }
