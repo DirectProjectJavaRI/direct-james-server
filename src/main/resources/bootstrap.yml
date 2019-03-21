@@ -1,0 +1,42 @@
+spring:
+#Update these properties to your own data store if not using Derby
+  datasource:
+    driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
+    url: jdbc:derby:./var/store/derby;create=true
+    username: app
+    password: app
+    adapter: DERBY 
+    streaming: false 
+#Fill out these properties for your own rabbit MQ instance  
+#  rabbitmq: 
+#    host:
+#    port: 
+#    username: 
+#    password: 
+#    virtual-host: 
+#    ssl:
+#      enabled: 
+#      validate-server-certificate: false
+#      verify-hostname: false
+  application:
+    name: direct-james-server
+  main:
+    allow-bean-definition-overriding: true  
+    
+eureka:
+  client:
+    enabled: false    
+    
+#If not using Eureka, then set the config-service URL.  This should be set to a empty value
+#if you are using Eureka
+direct:
+  config:
+    service:
+      url: http://localhost:8080/config-service
+      
+#Default the web admin credentials
+james:
+  server:
+    webadmin:
+      username: admin
+      password: d1r3ct      

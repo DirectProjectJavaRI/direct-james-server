@@ -1,0 +1,25 @@
+spring:
+  cloud: 
+    stream: 
+      bindings: 
+        direct-smtp-mq-gateway: 
+          destination: direct-smtp-mq-gateway
+          
+        direct-sta-last-mile-input:
+          destination: direct-sta-last-mile-delivery
+          group: direct-sta-last-mile-delivery-group
+          consumer:
+            concurrency: 10    
+            maxAttempts: 4
+            backOffInitialInterval: 15000
+            backOffMaxInterval: 60000   
+            
+direct:
+  webservices:
+    security:
+      basic:
+        user:
+          name: admin
+          password: d1r3ct;
+ 
+

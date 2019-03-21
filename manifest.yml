@@ -1,0 +1,16 @@
+---
+applications:
+- name: direct-james-server
+  health-check-type: none
+  instances: 1
+  buildpack: java_buildpack
+  path: target/direct-james-server-6.0-SNAPSHOT.jar
+  timeout: 120
+  env: 
+    spring.cloud.config.label: master 
+    JBP_CONFIG_DEBUG: '{enabled: true}'    
+    JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
+  services:
+    - directhisp-config-server  
+    - directhisp-eureka 
+    - directhisp-rabbit
