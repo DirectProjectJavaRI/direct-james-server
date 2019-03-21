@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nhind</groupId>
 	<artifactId>direct-james-server</artifactId>
-	<version>6.0-SNAPSHOT</version>
+	<version>6.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Direct Java RI James Spring Boot Application</name>
     <description>irect Java RI James Spring Boot Application</description>	
@@ -304,23 +304,6 @@
 				</configuration>
 			</plugin>		      		
 			<plugin>
-				<groupId>com.atlassian.maven.plugins</groupId>
-				<artifactId>maven-clover2-plugin</artifactId>
-				<version>3.0.2</version>
-				<configuration>
-					<jdk>1.8</jdk>
-					<licenseLocation>${project.basedir}/../../licenses/clover.license</licenseLocation>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>pre-site</phase>
-						<goals>
-							<goal>instrument</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>			
 			</plugin>
@@ -333,14 +316,17 @@
 		          </jvmArguments>          
 		        </configuration>				
 			</plugin>						
-			<!--  for releases only 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.9.1</version>
 				<configuration>
+				    <additionalparam>-Xdoclint:none</additionalparam>
 					<charset>UTF-8</charset>
 					<docencoding>UTF-8</docencoding>
+					<docfilessubdirs>true</docfilessubdirs>
+					<detectJavaApiLink>true</detectJavaApiLink>
+					<detectLinks>true</detectLinks>
 					<source>1.8</source>
 					<show>public</show>
 				</configuration>
@@ -353,7 +339,8 @@
 	                </goals>
 	              </execution>
 	            </executions>					
-			</plugin>			
+			</plugin>	
+	        <!--  for releases only 		
 	        <plugin>
                <groupId>org.apache.maven.plugins</groupId>
                <artifactId>maven-gpg-plugin</artifactId>
@@ -380,15 +367,16 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.0.1</version>
+				<version>2.9.1</version>
 				<configuration>
+				    <additionalparam>-Xdoclint:none</additionalparam>
 					<charset>UTF-8</charset>
 					<docencoding>UTF-8</docencoding>
 					<docfilessubdirs>true</docfilessubdirs>
 					<detectJavaApiLink>true</detectJavaApiLink>
 					<detectLinks>true</detectLinks>
 					<source>1.8</source>
-					<show>protected</show>
+					<show>public</show>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -409,29 +397,8 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>1.2</version>
 				<configuration>
 					<effort>Max</effort>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>taglist-maven-plugin</artifactId>
-				<configuration>
-					<tags>
-						<tag>FIXME</tag>
-						<tag>TODO</tag>
-						<tag>WARN</tag>
-						<tag>@deprecated</tag>
-					</tags>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.atlassian.maven.plugins</groupId>
-				<artifactId>maven-clover2-plugin</artifactId>
-				<version>3.0.2</version>
-				<configuration>
-					<licenseLocation>${project.basedir}/../../licenses/clover.license</licenseLocation>
 				</configuration>
 			</plugin>
 		</plugins>
