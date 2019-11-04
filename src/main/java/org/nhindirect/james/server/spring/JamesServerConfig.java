@@ -244,6 +244,8 @@ public class JamesServerConfig
 		
 		writeSMTPConfig();
 		
+		writeUserRepositoryConfig();		
+		
 		final org.apache.james.server.core.configuration.Configuration configuration = 
 				org.apache.james.server.core.configuration.Configuration.builder().workingDirectory(".").build();
 		
@@ -288,6 +290,15 @@ public class JamesServerConfig
 
 		
 		FileUtils.writeAllText(webAdminString, file);
+	}
+	
+	protected void writeUserRepositoryConfig() throws Exception
+	{
+		final File file = new File("conf/usersrepository.xml");
+		
+		String userRepositoryXML = IOUtils.resourceToString("/properties/userrepository.xml", Charset.defaultCharset());
+		
+		FileUtils.writeAllText(userRepositoryXML, file);
 	}
 	
 	protected void writeDomainListConfig() throws Exception
