@@ -44,6 +44,7 @@ public class MailUtils
 	 * @param mail The Apache James smtp message
 	 * @return An SMTPMailMessage message instance container information from the Apache James mail object;
 	 */
+	@SuppressWarnings("deprecation")
 	public static SMTPMailMessage mailToSMTPMailMessage(Mail mail) throws MessagingException
 	{
 		if (mail == null)

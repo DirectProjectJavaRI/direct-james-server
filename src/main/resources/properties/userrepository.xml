@@ -1,0 +1,6 @@
+<usersrepository name="LocalUsers">
+    <algorithm>MD5</algorithm>
+    <enableVirtualHosting>true</enableVirtualHosting>    
+    <enableForwarding>false</enableForwarding>
+    <enableAliases>false</enableAliases>
+</usersrepository>

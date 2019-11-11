@@ -3,6 +3,7 @@ package org.nhindirect.james.server.mailets;
 import java.util.Collection;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
@@ -39,7 +40,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 	protected NotificationProducer notificationProducer;
 	
 	@Inject
-	public StreamsTimelyAndReliableLocalDelivery(UsersRepository usersRepository, MailboxManager mailboxManager,
+	public StreamsTimelyAndReliableLocalDelivery(UsersRepository usersRepository, @Named("mailboxmanager") MailboxManager mailboxManager,
 			MetricFactory metricFactory)
 	{
 		super(usersRepository, mailboxManager, metricFactory);

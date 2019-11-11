@@ -10,6 +10,8 @@ import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.mailets.MailUtils;
 import org.nhindirect.james.server.mailets.StreamsTimelyAndReliableLocalDelivery;
 import org.nhindirect.james.server.streams.STALastMileDeliveryInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.Message;
@@ -21,6 +23,8 @@ import com.google.common.collect.ImmutableList;
 @EnableBinding(STALastMileDeliveryInput.class)
 public class STALastMileDeliverySink
 {	
+	private static final Logger LOGGER = LoggerFactory.getLogger(STALastMileDeliverySink.class);
+	
 	public STALastMileDeliverySink()
 	{
 
@@ -58,6 +62,20 @@ public class STALastMileDeliverySink
 				.recipients(recips)
 				.mimeMessage(smtpMessage.getMimeMessage()).build();
 		
+		LOGGER.info("Processing last mile delivery for from {} to {} with message id {}", smtpMessage.getMailFrom().toString(), 
+				toRecipsPrettingString(recips), smtpMessage.getMimeMessage().getMessageID());
+		
 		StreamsTimelyAndReliableLocalDelivery.getStaticMailet().service(mail);
+	}
+	
+	protected String toRecipsPrettingString(ImmutableList<MailAddress> recips)
+	{
+		final String[] addrs = new String[recips.size()];
+		
+		int idx = 0;
+		for (MailAddress addr : recips)
+			addrs[idx++] = addr.asPrettyString();
+		
+		return String.join(",", addrs);
 	}
 }
