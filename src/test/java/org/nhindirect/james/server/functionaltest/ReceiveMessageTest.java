@@ -14,13 +14,16 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nhindirect.common.mail.SMTPMailMessage;
 import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.SpringBaseTest;
 
+@Ignore
 public class ReceiveMessageTest extends SpringBaseTest
-{		
+{	
+	
 	protected void createAndDeliverMessage(String from, String to) throws Exception
 	{
 		final MimeMessage testMessage = new MimeMessage((Session)null);
