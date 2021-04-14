@@ -32,6 +32,7 @@ import org.apache.james.modules.server.ReIndexingModule;
 import org.apache.james.modules.server.SieveQuotaRoutesModule;
 import org.apache.james.modules.server.SwaggerRoutesModule;
 import org.apache.james.modules.spamassassin.SpamAssassinListenerModule;
+import org.nhind.config.rest.AddressService;
 import org.nhind.config.rest.DomainService;
 import org.nhindirect.config.model.Domain;
 import org.nhindirect.james.server.modules.DirectWebAdminServerModule;
@@ -229,7 +230,7 @@ public class JamesServerConfig
 	
 	@Bean
 	@ConditionalOnMissingBean
-	public GuiceJamesServer jamesServer(DomainService domService) throws Exception
+	public GuiceJamesServer jamesServer(DomainService domService, AddressService addrService) throws Exception
 	{
 		writeJPAConfig();
 		
@@ -251,7 +252,7 @@ public class JamesServerConfig
 				org.apache.james.server.core.configuration.Configuration.builder().workingDirectory(".").build();
 		
 		final GuiceJamesServer server = GuiceJamesServer.forConfiguration(configuration)
-				.combineWith(new Module[]{JPA_MODULE_AGGREGATE, new JMXServerModule(), new RESTDataServiceModule(domService)});
+				.combineWith(new Module[]{JPA_MODULE_AGGREGATE, new JMXServerModule(), new RESTDataServiceModule(domService, addrService)});
 		
 		server.start();
 		
