@@ -298,7 +298,7 @@ public class JamesServerConfig
 	{
 		final File file = new File("conf/usersrepository.xml");
 		
-		String userRepositoryXML = IOUtils.resourceToString("/properties/userrepository.xml", Charset.defaultCharset());
+		String userRepositoryXML = IOUtils.resourceToString("/properties/usersrepository.xml", Charset.defaultCharset());
 		
 		FileUtils.writeAllText(userRepositoryXML, file);
 	}
