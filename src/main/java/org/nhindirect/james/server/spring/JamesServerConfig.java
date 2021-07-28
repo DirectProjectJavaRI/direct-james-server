@@ -39,8 +39,6 @@ import org.nhindirect.james.server.modules.DirectWebAdminServerModule;
 import org.nhindirect.james.server.modules.HybridDataModule;
 import org.nhindirect.james.server.modules.RESTDataServiceModule;
 import org.parboiled.common.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,11 +48,12 @@ import org.springframework.context.annotation.Configuration;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Configuration
+@Slf4j
 public class JamesServerConfig
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(JamesServerConfig.class);	
-	
 	public static final String DEFAULT_MAILET_CONFIG = "/properties/mailetcontainer.xml";
 	public static final String DEFAULT_IMAP_CONFIG = "/properties/imapserver.xml";
 	public static final String DEFAULT_POP3_CONFIG = "/properties/pop3server.xml";
@@ -313,7 +312,7 @@ public class JamesServerConfig
 		Collection<Domain> domains = domService.searchDomains("", null);
 		if (domains.isEmpty())
 		{
-			LOGGER.warn("No domains defined.  A default list will be injected by James.");
+			log.warn("No domains defined.  A default list will be injected by James.");
 			return;
 		}
 		for (Domain domain : domains)

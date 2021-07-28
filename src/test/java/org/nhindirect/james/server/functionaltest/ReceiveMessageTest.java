@@ -1,6 +1,6 @@
 package org.nhindirect.james.server.functionaltest;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,13 +14,13 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.nhindirect.common.mail.SMTPMailMessage;
 import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.SpringBaseTest;
 
-@Ignore
+@Disabled
 public class ReceiveMessageTest extends SpringBaseTest
 {	
 	
@@ -34,7 +34,7 @@ public class ReceiveMessageTest extends SpringBaseTest
 		
 		final List<InternetAddress> recipients = Arrays.asList((InternetAddress[])testMessage.getAllRecipients());
 		final SMTPMailMessage mailMessage = new SMTPMailMessage(testMessage, recipients, (InternetAddress)testMessage.getFrom()[0]);
-		deliverySink.processLastMileMessage(SMTPMailMessageConverter.toStreamMessage(mailMessage));
+		deliverySink.directStaLastMileInput().accept(SMTPMailMessageConverter.toStreamMessage(mailMessage));
 	}
 	
 	protected Folder getInbox() throws Exception

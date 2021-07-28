@@ -25,17 +25,17 @@ import org.nhindirect.james.server.spring.DSNCreatorFactory;
 import org.nhindirect.james.server.streams.SmtpGatewayMessageSource;
 import org.nhindirect.stagent.NHINDAddress;
 import org.nhindirect.stagent.NHINDAddressCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.github.fge.lambdas.Throwing;
 import com.github.steveash.guavate.Guavate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MailUtils
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MailUtils.class);	
 	
 	protected static TxDetailParser txParser = new DefaultTxDetailParser();
 	
@@ -98,7 +98,7 @@ public class MailUtils
 		catch (Throwable e)
 		{
 			// don't kill the process if this fails
-			LOGGER.error("Error sending DSN failure message.", e);
+			log.error("Error sending DSN failure message.", e);
 		}
 	}	
 	

@@ -8,18 +8,19 @@ import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.Store;
 
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.nhind.config.rest.DomainService;
 import org.nhindirect.james.server.streams.sinks.STALastMileDeliverySink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
 import org.springframework.web.client.RestTemplate;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = TestApplication.class)
 @TestPropertySource("classpath:testapp.properties")
 public abstract class SpringBaseTest
@@ -39,7 +40,7 @@ public abstract class SpringBaseTest
 	@Value("${james.server.test.password}")
 	protected String testPass;
 	
-	@Before
+	@BeforeEach
 	public void addUsers() throws Exception
 	{
 		/*

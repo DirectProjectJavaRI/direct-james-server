@@ -25,13 +25,12 @@ import org.nhindirect.stagent.NHINDAddress;
 import org.nhindirect.stagent.NHINDAddressCollection;
 import org.nhindirect.stagent.mail.Message;
 import org.nhindirect.stagent.mail.notifications.NotificationMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//TimelyAndReliableLocalDelivery
 {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(StreamsTimelyAndReliableLocalDelivery.class);
 	
 	protected static final String DISPATCHED_MDN_DELAY = "DispatchedMDNDelay";
 	
@@ -71,7 +70,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 	@Override
 	public void service(Mail mail) throws MessagingException 
 	{
-		LOGGER.debug("Calling timely and reliable service method.");
+		log.debug("Calling timely and reliable service method.");
 		
 		boolean deliverySuccessful = false;
 		
@@ -92,7 +91,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to deliver mail locally.", e);
+			log.error("Failed to deliver mail locally.", e);
 		}
 		
 		final Tx txToTrack = MailUtils.getTxToTrack(msg, sender, recipients);
@@ -107,7 +106,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 						notificationProducer.produce(new Message(msg), recipients.toInternetAddressCollection());
 				if (notifications != null && notifications.size() > 0)
 				{
-					LOGGER.debug("Sending MDN \"dispatched\" messages");
+					log.debug("Sending MDN \"dispatched\" messages");
 					// create a message for each notification and put it on James "stack"
 					for (NotificationMessage message : notifications)
 					{
@@ -121,7 +120,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 						catch (Throwable t)
 						{
 							// don't kill the process if this fails
-							LOGGER.error("Error sending MDN dispatched message.", t);
+							log.error("Error sending MDN dispatched message.", t);
 						}
 						///CLOVER:ON
 					}
@@ -135,7 +134,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 				MailUtils.sendDSN(txToTrack, recipients, false);
 		}
 		
-		LOGGER.debug("Exiting timely and reliable service method.");
+		log.debug("Exiting timely and reliable service method.");
 	}	
 
 }

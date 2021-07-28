@@ -21,18 +21,18 @@ import org.apache.james.webadmin.authentication.AuthenticationFilter;
 import org.apache.james.webadmin.utils.JsonTransformer;
 import org.apache.james.webadmin.utils.JsonTransformerModule;
 import org.nhindirect.james.server.authfilter.WebAdminBasicAuthFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DirectWebAdminServerModule extends AbstractModule
 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DirectWebAdminServerModule.class);
     private static final boolean DEFAULT_DISABLED = true;
     private static final String DEFAULT_NO_CORS_ORIGIN = null;
     private static final boolean DEFAULT_CORS_DISABLED = false;
@@ -69,7 +69,7 @@ public class DirectWebAdminServerModule extends AbstractModule
                 .host(configurationFile.getString("host", WebAdminConfiguration.DEFAULT_HOST))
                 .build();
         } catch (FileNotFoundException e) {
-            LOGGER.info("No webadmin.properties file. Disabling WebAdmin interface.");
+            log.info("No webadmin.properties file. Disabling WebAdmin interface.");
             return DISABLED_CONFIGURATION;
         }
     }
