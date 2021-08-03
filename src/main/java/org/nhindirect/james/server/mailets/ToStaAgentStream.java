@@ -6,13 +6,12 @@ import org.apache.mailet.Mail;
 import org.apache.mailet.base.GenericMailet;
 import org.nhindirect.common.mail.SMTPMailMessage;
 import org.nhindirect.james.server.streams.SmtpGatewayMessageSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ToStaAgentStream extends GenericMailet
 {
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ToStaAgentStream.class);
-	
 	public ToStaAgentStream()
 	{
 		
@@ -21,7 +20,7 @@ public class ToStaAgentStream extends GenericMailet
 	@Override
 	public void service(Mail mail) throws MessagingException
 	{
-		LOGGER.info("Receiving message to deliver to STA.  Message id: {}", mail.getMessage().getMessageID());
+		log.info("Receiving message to deliver to STA.  Message id: {}", mail.getMessage().getMessageID());
 		
 		final SMTPMailMessage smtpMailMessage = MailUtils.mailToSMTPMailMessage(mail);
 		
@@ -31,11 +30,11 @@ public class ToStaAgentStream extends GenericMailet
 			messageSource.forwardSMTPMessage(smtpMailMessage);
 			mail.setState(Mail.GHOST);
 			
-			LOGGER.info("Message sent to STA.  Message id: {}", mail.getMessage().getMessageID());
+			log.info("Message sent to STA.  Message id: {}", mail.getMessage().getMessageID());
 			
 			return;
 		}
 		
-		LOGGER.warn("Message STA source is not available to process message id: {}", mail.getMessage().getMessageID());
+		log.warn("Message STA source is not available to process message id: {}", mail.getMessage().getMessageID());
 	}
 }

@@ -1,18 +1,49 @@
 spring:
   cloud: 
     stream: 
-      bindings: 
-        direct-smtp-mq-gateway: 
+      # Need to define an explicit source binding name since we are using a StreamBridge
+      source: direct-smtp-gateway-message
+      function:
+        definition: directStaLastMileInput
+          
+      bindings:
+        direct-smtp-gateway-message-out-0:
           destination: direct-smtp-mq-gateway
           
-        direct-sta-last-mile-input:
+        directStaLastMileInput-in-0:
           destination: direct-sta-last-mile-delivery
           group: direct-sta-last-mile-delivery-group
           consumer:
             concurrency: 10    
             maxAttempts: 4
             backOffInitialInterval: 15000
-            backOffMaxInterval: 60000   
+            backOffMaxInterval: 60000  
+
+#Update these properties to your own data store if not using Derby
+  datasource:
+    driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
+    url: jdbc:derby:./var/store/derby;create=true
+    username: app
+    password: app
+    adapter: DERBY 
+    streaming: false 
+
+#Fill out these properties for your own rabbit MQ instance  
+#  rabbitmq: 
+#    host:
+#    port: 
+#    username: 
+#    password: 
+#    virtual-host: 
+#    ssl:
+#      enabled: 
+#      validate-server-certificate: false
+#      verify-hostname: false             
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
             
 direct:
   webservices:
@@ -21,5 +52,20 @@ direct:
         user:
           name: admin
           password: d1r3ct;
+
+  config:
+    service:
+      url: http://localhost:8082
  
 
+server:
+  port: 8084
+
+      
+#Default the web admin credentials
+james:
+  server:
+    webadmin:
+      username: admin
+      password: d1r3ct
+      port: 8084
