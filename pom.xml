@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nhind</groupId>
 	<artifactId>direct-james-server</artifactId>
-	<version>8.0.0</version>
+	<version>8.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Direct Java RI James Spring Boot Application</name>
     <description>irect Java RI James Spring Boot Application</description>	
@@ -98,11 +98,39 @@
 		</dependency>	       		
 	    <dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-config</artifactId>			
+			<artifactId>spring-cloud-starter-config</artifactId>		
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcmail-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>				
 		</dependency>	
 		<dependency>
 		    <groupId>org.springframework.cloud</groupId>
 		    <artifactId>spring-cloud-starter-bootstrap</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcmail-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>		    
 		</dependency>	
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
@@ -136,13 +164,13 @@
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>config-service-client</artifactId>
-	        <version>8.0.0</version>
+	        <version>8.1.0-SNAPSHOT</version>
 	    </dependency>	
 
 		<dependency>
 			<groupId>org.nhind</groupId>
 			<artifactId>gateway</artifactId>
-			<version>8.0.0</version>	
+			<version>8.1.0-SNAPSHOT</version>	
 		    <exclusions>
 		        <exclusion>
 		            <groupId>org.nhind</groupId>
@@ -188,6 +216,20 @@
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-imap</artifactId>
 		    <version>${apache-james.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcmail-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>		    
 		</dependency>		
 		<dependency>
 		    <groupId>org.apache.james</groupId>
@@ -214,11 +256,6 @@
 		    <artifactId>james-server-guice-mailbox</artifactId>
 		    <version>${apache-james.version}</version>
 		</dependency>				
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-guice-activemq</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>	
 		<dependency>
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-activemq</artifactId>
