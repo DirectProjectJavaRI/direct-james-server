@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nhind</groupId>
 	<artifactId>direct-james-server</artifactId>
-	<version>8.1.0</version>
+	<version>8.2.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Direct Java RI James Spring Boot Application</name>
     <description>irect Java RI James Spring Boot Application</description>	
