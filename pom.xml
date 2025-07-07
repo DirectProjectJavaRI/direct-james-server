@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nhind</groupId>
 	<artifactId>direct-james-server</artifactId>
-	<version>8.1.0-SNAPSHOT</version>
+	<version>8.1.0</version>
 	<packaging>jar</packaging>
 	<name>Direct Java RI James Spring Boot Application</name>
     <description>irect Java RI James Spring Boot Application</description>	
@@ -164,13 +164,13 @@
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>config-service-client</artifactId>
-	        <version>8.1.0-SNAPSHOT</version>
+	        <version>8.1.0</version>
 	    </dependency>	
 
 		<dependency>
 			<groupId>org.nhind</groupId>
 			<artifactId>gateway</artifactId>
-			<version>8.1.0-SNAPSHOT</version>	
+			<version>8.1.0</version>	
 		    <exclusions>
 		        <exclusion>
 		            <groupId>org.nhind</groupId>
@@ -427,6 +427,15 @@
                </executions>
             </plugin>	
             -->		
+	        <plugin>
+	          <groupId>org.sonatype.central</groupId>
+	          <artifactId>central-publishing-maven-plugin</artifactId>
+	          <version>0.8.0</version>
+	          <extensions>true</extensions>
+	          <configuration>
+	            <publishingServerId>central</publishingServerId>
+	          </configuration>
+	        </plugin>    
 		</plugins>			
 	</build>
 	<reporting>
@@ -474,24 +483,4 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<distributionManagement>
-		<site>
-			<id>nhind-site</id>
-			<name>NHIN Direct API publication site</name>
-			<url>sftp://api.nhindirect.org/x/www/api.nhindirect.org/java/site/direct-james-server/${project.version}</url>
-		</site>
-        <snapshotRepository>
-            <id>sonatype-snapshot</id>
-            <name>Sonatype OSS Maven SNAPSHOT Repository</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <uniqueVersion>false</uniqueVersion>
-         </snapshotRepository>
-         <repository>
-            <id>sonatype-release</id>
-            <name>Sonatype OSS Maven Release Repositor</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-            <uniqueVersion>false</uniqueVersion>
-         </repository>				
-	</distributionManagement>
-
 </project>
