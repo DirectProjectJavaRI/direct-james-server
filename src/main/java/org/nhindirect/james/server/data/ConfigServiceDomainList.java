@@ -14,7 +14,6 @@ import org.nhindirect.common.rest.exceptions.ServiceException;
 import org.nhindirect.config.model.Address;
 import org.nhindirect.config.model.EntityStatus;
 
-import com.github.steveash.guavate.Guavate;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -90,23 +89,6 @@ public class ConfigServiceDomainList extends AbstractDomainList
 	}
 
 	@Override
-	public void removeDomain(Domain domain) throws DomainListException 
-	{
-		try
-		{
-			if (containsDomainInternal(domain)) 
-				throw new DomainListException(domain.name() + " was not found.");
-			
-			domService.deleteDomain(domain.name());
-		}
-		catch (ServiceException e)
-		{
-			throw new DomainListException("Unable to remove domain " + domain.name(), e);
-		}
-		
-	}
-
-	@Override
 	protected List<Domain> getDomainListInternal() throws DomainListException 
 	{
 		try
@@ -114,7 +96,7 @@ public class ConfigServiceDomainList extends AbstractDomainList
 			final List<Domain> domains = domService.searchDomains("", null)
 			.stream()
 			.map(dom -> Domain.of(dom.getDomainName()))
-			.collect(Guavate.toImmutableList());
+			.toList();
 			
 			return ImmutableList.copyOf(domains);
 		}
@@ -134,5 +116,21 @@ public class ConfigServiceDomainList extends AbstractDomainList
         return ImmutableList.copyOf(getDomainListInternal());
 
     }
+
+	@Override
+	protected void doRemoveDomain(Domain domain) throws DomainListException {
+		try
+		{
+			if (containsDomainInternal(domain)) 
+				throw new DomainListException(domain.name() + " was not found.");
+			
+			domService.deleteDomain(domain.name());
+		}
+		catch (ServiceException e)
+		{
+			throw new DomainListException("Unable to remove domain " + domain.name(), e);
+		}
+		
+	}
 
 }

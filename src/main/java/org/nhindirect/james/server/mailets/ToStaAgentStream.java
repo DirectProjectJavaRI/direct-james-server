@@ -4,7 +4,7 @@ import javax.mail.MessagingException;
 
 import org.apache.mailet.Mail;
 import org.apache.mailet.base.GenericMailet;
-import org.nhindirect.common.mail.SMTPMailMessage;
+import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
 import org.nhindirect.james.server.streams.SmtpGatewayMessageSource;
 
 import lombok.extern.slf4j.Slf4j;

@@ -1,10 +1,12 @@
 package org.nhindirect.james.server.mailets;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.james.mailbox.MailboxManager;
@@ -13,18 +15,16 @@ import org.apache.james.transport.mailets.LocalDelivery;
 import org.apache.james.user.api.UsersRepository;
 import org.apache.mailet.Mail;
 import org.apache.mailet.Mailet;
-import org.nhindirect.common.mail.SMTPMailMessage;
-import org.nhindirect.common.tx.TxUtil;
+import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
+import org.nhindirect.common.javaxcompat.tx.TxUtil;
 import org.nhindirect.common.tx.model.Tx;
 import org.nhindirect.common.tx.model.TxMessageType;
-import org.nhindirect.gateway.smtp.NotificationProducer;
-import org.nhindirect.gateway.smtp.NotificationSettings;
-import org.nhindirect.gateway.smtp.ReliableDispatchedNotificationProducer;
-import org.nhindirect.gateway.util.MessageUtils;
-import org.nhindirect.stagent.NHINDAddress;
-import org.nhindirect.stagent.NHINDAddressCollection;
-import org.nhindirect.stagent.mail.Message;
-import org.nhindirect.stagent.mail.notifications.NotificationMessage;
+import org.nhindirect.gateway.javaxcompat.smtp.NotificationProducer;
+import org.nhindirect.gateway.javaxcompat.smtp.NotificationSettings;
+import org.nhindirect.gateway.javaxcompat.smtp.ReliableDispatchedNotificationProducer;
+import org.nhindirect.gateway.javaxcompat.util.MessageUtils;
+import org.nhindirect.stagent.javaxcompat.mail.Message;
+import org.nhindirect.stagent.javaxcompat.mail.notifications.NotificationMessage;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,9 +79,9 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 		
 		final SMTPMailMessage smtpMailMessage = MailUtils.mailToSMTPMailMessage(mail);
 		
-		final NHINDAddressCollection recipients = MessageUtils.getMailRecipients(smtpMailMessage);
+		final List<InternetAddress> recipients = MessageUtils.getMailRecipients(smtpMailMessage);
 		
-		final NHINDAddress sender = MessageUtils.getMailSender(smtpMailMessage);
+		final InternetAddress sender = MessageUtils.getMailSender(smtpMailMessage);
 		
 		
 		try
@@ -103,7 +103,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 
 				// send back an MDN dispatched message
 				final Collection<NotificationMessage> notifications = 
-						notificationProducer.produce(new Message(msg), recipients.toInternetAddressCollection());
+						notificationProducer.produce(new Message(msg), recipients);
 				if (notifications != null && notifications.size() > 0)
 				{
 					log.debug("Sending MDN \"dispatched\" messages");

@@ -1,8 +1,8 @@
 package org.nhindirect.james.server.streams;
 
 
-import org.nhindirect.common.mail.SMTPMailMessage;
-import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
+import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
+import org.nhindirect.common.javaxcompat.mail.streams.SMTPMailMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Component;

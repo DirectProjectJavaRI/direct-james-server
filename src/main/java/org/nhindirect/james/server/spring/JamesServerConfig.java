@@ -7,12 +7,20 @@ import java.util.Collection;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.james.GuiceJamesServer;
+import org.apache.james.JamesServerMain;
+import org.apache.james.NaiveDelegationStoreModule;
+import org.apache.james.data.UsersRepositoryModuleChooser;
+import org.apache.james.filesystem.api.FileSystem;
 import org.apache.james.modules.MailboxModule;
-import org.apache.james.modules.activemq.ActiveMQQueueModule;
+import org.apache.james.modules.MailetProcessingModule;
+import org.apache.james.modules.data.JPADataModule;
+import org.apache.james.modules.data.JPAUsersRepositoryModule;
 import org.apache.james.modules.data.SieveJPARepositoryModules;
+import org.apache.james.modules.queue.activemq.ActiveMQQueueModule;
 import org.apache.james.modules.mailbox.DefaultEventModule;
 import org.apache.james.modules.mailbox.JPAMailboxModule;
 import org.apache.james.modules.mailbox.LuceneSearchMailboxModule;
+import org.apache.james.modules.mailbox.MemoryDeadLetterModule;
 import org.apache.james.modules.protocols.IMAPServerModule;
 import org.apache.james.modules.protocols.LMTPServerModule;
 import org.apache.james.modules.protocols.ManageSieveServerModule;
@@ -21,24 +29,27 @@ import org.apache.james.modules.protocols.ProtocolHandlerModule;
 import org.apache.james.modules.protocols.SMTPServerModule;
 import org.apache.james.modules.server.DataRoutesModules;
 import org.apache.james.modules.server.DefaultProcessorsConfigurationProviderModule;
-import org.apache.james.modules.server.ElasticSearchMetricReporterModule;
-import org.apache.james.modules.server.JMXServerModule;
+import org.apache.james.modules.server.InconsistencyQuotasSolvingRoutesModule;
 import org.apache.james.modules.server.MailQueueRoutesModule;
 import org.apache.james.modules.server.MailRepositoriesRoutesModule;
 import org.apache.james.modules.server.MailboxRoutesModule;
 import org.apache.james.modules.server.NoJwtModule;
 import org.apache.james.modules.server.RawPostDequeueDecoratorModule;
 import org.apache.james.modules.server.ReIndexingModule;
-import org.apache.james.modules.server.SieveQuotaRoutesModule;
-import org.apache.james.modules.server.SwaggerRoutesModule;
-import org.apache.james.modules.spamassassin.SpamAssassinListenerModule;
+import org.apache.james.modules.server.SieveRoutesModule;
+import org.apache.james.modules.server.TaskManagerModule;
+import org.apache.james.modules.server.WebAdminReIndexingTaskSerializationModule;
+import org.apache.james.modules.server.WebAdminServerModule;
+import org.apache.james.server.core.JamesServerResourceLoader;
+import org.apache.james.server.core.configuration.Configuration.Basic;
+import org.apache.james.server.core.configuration.Configuration.ConfigurationPath;
+import org.apache.james.server.core.configuration.FileConfigurationProvider;
+import org.apache.james.server.core.filesystem.FileSystemImpl;
 import org.nhind.config.rest.AddressService;
 import org.nhind.config.rest.DomainService;
 import org.nhindirect.config.model.Domain;
-import org.nhindirect.james.server.modules.DirectWebAdminServerModule;
-import org.nhindirect.james.server.modules.HybridDataModule;
 import org.nhindirect.james.server.modules.RESTDataServiceModule;
-import org.parboiled.common.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -174,7 +185,7 @@ public class JamesServerConfig
 	@Value("${james.server.smtp.keystorePassword:1kingpuff}")
 	protected String smtpKeyStorePassword;
 	
-	@Value("${james.server.smtp.autoAddresses:127.0.0.0/8}")
+	@Value("${james.server.smtp.autoAddresses:}")
 	protected String smtpAuthAddresses;
 	
 	/*
@@ -201,31 +212,47 @@ public class JamesServerConfig
 	public static final Module WEBADMIN;
 
 	static 
-	{
+	{	
 		
 	    WEBADMIN = Modules.combine(
-	            new DirectWebAdminServerModule(),
+	            new WebAdminServerModule(),
 	            new DataRoutesModules(),
+	            new InconsistencyQuotasSolvingRoutesModule(),
 	            new MailboxRoutesModule(),
 	            new MailQueueRoutesModule(),
 	            new MailRepositoriesRoutesModule(),
-	            new SwaggerRoutesModule(),
-	            new SieveQuotaRoutesModule(),
-	            new ReIndexingModule());		
-		
-		PROTOCOLS = Modules
-				.combine(new Module[]{new IMAPServerModule(), new LMTPServerModule(), new ManageSieveServerModule(),
-						new POP3ServerModule(), new ProtocolHandlerModule(), new SMTPServerModule(), WEBADMIN});
-		
-		JPA_SERVER_MODULE = Modules.combine(new Module[]{new ActiveMQQueueModule(),
-				new DefaultProcessorsConfigurationProviderModule(), new ElasticSearchMetricReporterModule(),
-				new HybridDataModule(), new JPAMailboxModule(), new MailboxModule(), new LuceneSearchMailboxModule(), new NoJwtModule(),
-				new RawPostDequeueDecoratorModule(), new SieveJPARepositoryModules(),
-				new DefaultEventModule(), new SpamAssassinListenerModule()});
-		
-		JPA_MODULE_AGGREGATE = Modules.combine(new Module[]{JPA_SERVER_MODULE, PROTOCOLS});
-	}
+	            new ReIndexingModule(),
+	            new SieveRoutesModule(),
+	            new WebAdminReIndexingTaskSerializationModule());
+        
+	    PROTOCOLS = Modules.combine(
+	            new IMAPServerModule(),
+	            new LMTPServerModule(),
+	            new ManageSieveServerModule(),
+	            new POP3ServerModule(),
+	            new ProtocolHandlerModule(),
+	            new SMTPServerModule(),
+	            WEBADMIN);
+
+	    JPA_SERVER_MODULE = Modules.combine(
+	            new ActiveMQQueueModule(),
+	            new NaiveDelegationStoreModule(),
+	            new DefaultProcessorsConfigurationProviderModule(),
+	            new JPADataModule(),
+	            new JPAMailboxModule(),
+	            new MailboxModule(),
+	            new LuceneSearchMailboxModule(),
+	            new NoJwtModule(),
+	            new RawPostDequeueDecoratorModule(),
+	            new SieveJPARepositoryModules(),
+	            new DefaultEventModule(),
+	            new TaskManagerModule(),
+	            new MemoryDeadLetterModule());
+
+	    JPA_MODULE_AGGREGATE = Modules.combine(
+	            new MailetProcessingModule(), JPA_SERVER_MODULE, PROTOCOLS);
 	
+	}
 	
 	@Bean
 	@ConditionalOnMissingBean
@@ -250,10 +277,27 @@ public class JamesServerConfig
 		final org.apache.james.server.core.configuration.Configuration configuration = 
 				org.apache.james.server.core.configuration.Configuration.builder().workingDirectory(".").build();
 		
-		final GuiceJamesServer server = GuiceJamesServer.forConfiguration(configuration)
-				.combineWith(new Module[]{JPA_MODULE_AGGREGATE, new JMXServerModule(), new RESTDataServiceModule(domService, addrService)});
+		ConfigurationPath configurationPath = new ConfigurationPath(FileSystem.FILE_PROTOCOL_AND_CONF);
 		
-		server.start();
+		JamesServerResourceLoader directories = new JamesServerResourceLoader(".");
+		FileSystemImpl fileSystem = new FileSystemImpl(directories);
+        FileConfigurationProvider configurationProvider = new FileConfigurationProvider(fileSystem, Basic.builder()
+                .configurationPath(configurationPath)
+                .workingDirectory(directories.getRootDirectory())
+                .build());
+		
+		//final GuiceJamesServer server = GuiceJamesServer.forConfiguration(configuration)
+		//		.combineWith(new Module[]{JPA_MODULE_AGGREGATE, new RESTDataServiceModule(domService, addrService)});
+		
+        
+		final GuiceJamesServer server =  GuiceJamesServer.forConfiguration(configuration)
+                .combineWith(JPA_MODULE_AGGREGATE, new RESTDataServiceModule(domService, addrService))
+                .combineWith(new UsersRepositoryModuleChooser(new JPAUsersRepositoryModule())
+                    .chooseModules(UsersRepositoryModuleChooser.Implementation.parse(configurationProvider)));
+        
+		
+		
+		JamesServerMain.main(server);
 		
 		return server;
 	}
@@ -271,7 +315,7 @@ public class JamesServerConfig
 		
 		dbPropString = dbPropString.replace("${streaming}", this.datasourceStreaming);
 		
-		FileUtils.writeAllText(dbPropString, file);
+		FileUtils.write(file, dbPropString, Charset.defaultCharset());
 	}
 	
 	protected void writeWebAdminConfig() throws Exception
@@ -290,7 +334,7 @@ public class JamesServerConfig
 		webAdminString = webAdminString.replace("${trustPassword}", this.webAdminTrustKeystorePassword);
 
 		
-		FileUtils.writeAllText(webAdminString, file);
+		FileUtils.write(file, webAdminString, Charset.defaultCharset());
 	}
 	
 	protected void writeUserRepositoryConfig() throws Exception
@@ -299,7 +343,7 @@ public class JamesServerConfig
 		
 		String userRepositoryXML = IOUtils.resourceToString("/properties/userrepository.xml", Charset.defaultCharset());
 		
-		FileUtils.writeAllText(userRepositoryXML, file);
+		FileUtils.write(file, userRepositoryXML, Charset.defaultCharset());
 	}
 	
 	protected void writeDomainListConfig() throws Exception
@@ -324,7 +368,7 @@ public class JamesServerConfig
 		// just use the first in the list for the default damain
 		domainlistXML = domainlistXML.replace("${defaultdomain}", domains.iterator().next().getDomainName());
 		
-		FileUtils.writeAllText(domainlistXML, file);
+		FileUtils.write(file, domainlistXML, Charset.defaultCharset());
 	}
 	
 	protected void writeMailetConfig() throws Exception
@@ -333,8 +377,13 @@ public class JamesServerConfig
 		 * Mailet config
 		 */
 		File writeFile = new File("conf/mailetcontainer.xml");
-		byte[] content = (StringUtils.isEmpty(mailetConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_MAILET_CONFIG) : FileUtils.readAllBytes(new File(mailetConfigFile));
-		FileUtils.writeAllBytes(content, writeFile);
+		byte[] content = (StringUtils.isEmpty(mailetConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_MAILET_CONFIG) : FileUtils.readFileToByteArray(new File(mailetConfigFile));
+		
+		
+		
+		FileUtils.writeByteArrayToFile(writeFile, content);
+		
+		
 	}
 	
 	protected void writeIMAPConfig() throws Exception
@@ -343,7 +392,7 @@ public class JamesServerConfig
 		 * IMAP config
 		 */
 		final File configFile = new File("conf/imapserver.xml");
-		String content = (StringUtils.isEmpty(imapConfigFile)) ? IOUtils.resourceToString(DEFAULT_IMAP_CONFIG, Charset.defaultCharset()) : FileUtils.readAllText(new File(imapConfigFile));
+		String content = (StringUtils.isEmpty(imapConfigFile)) ? IOUtils.resourceToString(DEFAULT_IMAP_CONFIG, Charset.defaultCharset()) : FileUtils.readFileToString(new File(imapConfigFile), Charset.defaultCharset());
 		
 		content = content.replace("${bind}", this.imapBind);
 		content = content.replace("${port}", this.imapPort);
@@ -351,11 +400,12 @@ public class JamesServerConfig
 		content = content.replace("${startTLS}", this.imapStartTLS);		
 		content = content.replace("${keystorePassword}", this.imapKeyStorePassword);
 		
-		FileUtils.writeAllText(content, configFile);
+		FileUtils.write(configFile, content, Charset.defaultCharset());
 		
 		final File keystoreFile = new File("conf/keystore");
-		byte[] keyStoreContent = (StringUtils.isEmpty(imapKeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readAllBytes(new File(imapKeyStore));
-		FileUtils.writeAllBytes(keyStoreContent, keystoreFile);
+		byte[] keyStoreContent = (StringUtils.isEmpty(imapKeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readFileToByteArray(new File(imapKeyStore));
+
+		FileUtils.writeByteArrayToFile(keystoreFile, keyStoreContent);
 	}
 	
 	protected void writePOP3Config() throws Exception
@@ -364,7 +414,7 @@ public class JamesServerConfig
 		 * POP3 config
 		 */
 		final File configFile = new File("conf/pop3server.xml");
-		String content = (StringUtils.isEmpty(pop3ConfigFile)) ? IOUtils.resourceToString(DEFAULT_POP3_CONFIG, Charset.defaultCharset()) : FileUtils.readAllText(new File(pop3ConfigFile));
+		String content = (StringUtils.isEmpty(pop3ConfigFile)) ? IOUtils.resourceToString(DEFAULT_POP3_CONFIG, Charset.defaultCharset()) : FileUtils.readFileToString(new File(pop3ConfigFile), Charset.defaultCharset());
 		
 		content = content.replace("${bind}", this.pop3Bind);
 		content = content.replace("${port}", this.pop3Port);
@@ -372,11 +422,11 @@ public class JamesServerConfig
 		content = content.replace("${startTLS}", this.pop3StartTLS);		
 		content = content.replace("${keystorePassword}", this.pop3KeyStorePassword);
 		
-		FileUtils.writeAllText(content, configFile);
+		FileUtils.write(configFile, content, Charset.defaultCharset());
 		
 		final File keystoreFile = new File("conf/keystore");
-		byte[] keyStoreContent = (StringUtils.isEmpty(pop3KeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readAllBytes(new File(pop3KeyStore));
-		FileUtils.writeAllBytes(keyStoreContent, keystoreFile);
+		byte[] keyStoreContent = (StringUtils.isEmpty(pop3KeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readFileToByteArray(new File(pop3KeyStore));
+		FileUtils.writeByteArrayToFile(keystoreFile, keyStoreContent);
 	}
 	
 	protected void writeSMTPConfig() throws Exception
@@ -385,7 +435,7 @@ public class JamesServerConfig
 		 * SMTP config
 		 */
 		final File configFile = new File("conf/smtpserver.xml");
-		String content = (StringUtils.isEmpty(smtpConfigFile)) ? IOUtils.resourceToString(DEFAULT_SMTP_CONFIG, Charset.defaultCharset()) : FileUtils.readAllText(new File(smtpConfigFile));
+		String content = (StringUtils.isEmpty(smtpConfigFile)) ? IOUtils.resourceToString(DEFAULT_SMTP_CONFIG, Charset.defaultCharset()) : FileUtils.readFileToString(new File(smtpConfigFile), Charset.defaultCharset());
 		
 		content = content.replace("${bind}", this.smtpBind);
 		content = content.replace("${port}", this.smtpPort);
@@ -394,10 +444,10 @@ public class JamesServerConfig
 		content = content.replace("${keystorePassword}", this.smtpKeyStorePassword);
 		content = content.replace("${authAddresses}", this.smtpAuthAddresses);
 		
-		FileUtils.writeAllText(content, configFile);
+		FileUtils.write(configFile, content, Charset.defaultCharset());
 		
 		final File keystoreFile = new File("conf/keystore");
-		byte[] keyStoreContent = (StringUtils.isEmpty(smtpKeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readAllBytes(new File(smtpKeyStore));
-		FileUtils.writeAllBytes(keyStoreContent, keystoreFile);
+		byte[] keyStoreContent = (StringUtils.isEmpty(smtpKeyStore)) ? IOUtils.resourceToByteArray(DEFAULT_KEYSTORE) : FileUtils.readFileToByteArray(new File(smtpKeyStore));
+		FileUtils.writeByteArrayToFile(keystoreFile, keyStoreContent);
 	}
 }
