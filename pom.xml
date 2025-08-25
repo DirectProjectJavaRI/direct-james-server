@@ -41,7 +41,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<apache-james.version>3.2.0</apache-james.version>
-		<derby.version>10.14.2.0</derby.version>
+		<derby.version>10.17.1.0</derby.version>
 		<postgresql.version>42.2.5</postgresql.version>
 		<dropwizard.version>3.2.6</dropwizard.version>
 		<guice.version>4.2.2</guice.version>
