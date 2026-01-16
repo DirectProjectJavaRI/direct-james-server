@@ -16,8 +16,8 @@ import javax.mail.internet.MimeMessage.RecipientType;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.nhindirect.common.mail.SMTPMailMessage;
-import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
+import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
+import org.nhindirect.common.javaxcompat.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.SpringBaseTest;
 
 @Disabled

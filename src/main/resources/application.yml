@@ -2,10 +2,7 @@ spring:
   cloud: 
     stream: 
       # Need to define an explicit source binding name since we are using a StreamBridge
-      source: direct-smtp-gateway-message
-      function:
-        definition: directStaLastMileInput
-          
+      output-bindings: direct-smtp-gateway-message
       bindings:
         direct-smtp-gateway-message-out-0:
           destination: direct-smtp-mq-gateway

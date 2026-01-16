@@ -1,7 +1,7 @@
 package org.nhindirect.james.server.spring;
 
-import org.nhindirect.gateway.smtp.dsn.DSNCreator;
-import org.nhindirect.gateway.smtp.dsn.impl.FailedDeliveryDSNCreator;
+import org.nhindirect.gateway.javaxcompat.smtp.dsn.DSNCreator;
+import org.nhindirect.gateway.javaxcompat.smtp.dsn.impl.FailedDeliveryDSNCreator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

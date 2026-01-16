@@ -15,19 +15,16 @@ import javax.mail.internet.MimeMessage;
 import org.apache.james.core.MailAddress;
 import org.apache.james.server.core.MailImpl;
 import org.apache.mailet.Mail;
-import org.nhindirect.common.mail.SMTPMailMessage;
-import org.nhindirect.common.tx.TxDetailParser;
-import org.nhindirect.common.tx.impl.DefaultTxDetailParser;
+import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
+import org.nhindirect.common.javaxcompat.tx.TxDetailParser;
+import org.nhindirect.common.javaxcompat.tx.impl.DefaultTxDetailParser;
 import org.nhindirect.common.tx.model.Tx;
-import org.nhindirect.gateway.smtp.dsn.DSNCreator;
-import org.nhindirect.gateway.util.MessageUtils;
+import org.nhindirect.gateway.javaxcompat.smtp.dsn.DSNCreator;
+import org.nhindirect.gateway.javaxcompat.util.MessageUtils;
 import org.nhindirect.james.server.spring.DSNCreatorFactory;
 import org.nhindirect.james.server.streams.SmtpGatewayMessageSource;
-import org.nhindirect.stagent.NHINDAddress;
-import org.nhindirect.stagent.NHINDAddressCollection;
 
 import com.github.fge.lambdas.Throwing;
-import com.github.steveash.guavate.Guavate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
@@ -51,7 +48,8 @@ public class MailUtils
 			return null;
 		
 		List<InternetAddress> toAddrs = new ArrayList<>();
-		final InternetAddress fromAddr = (mail.getSender() == null) ? null : mail.getSender().toInternetAddress();
+		final InternetAddress fromAddr = (mail.getMaybeSender().asOptional().isEmpty()) ? null 
+				: mail.getMaybeSender().asOptional().get().toInternetAddress().get();
 		// uses the RCPT TO commands
 		final Collection<MailAddress> recips = mail.getRecipients();
 		if (recips == null || recips.size() == 0)
@@ -64,7 +62,7 @@ public class MailUtils
 		else
 		{
 			toAddrs = recips.stream().
-					map(toAddr -> toAddr.toInternetAddress()).collect(Collectors.toList());
+					map(toAddr -> toAddr.toInternetAddress().get()).collect(Collectors.toList());
 
 		}
 		
@@ -77,12 +75,12 @@ public class MailUtils
 	 * @param sender The sender of the message
 	 * @return A trackable Tx object.
 	 */
-	protected static Tx getTxToTrack(MimeMessage msg, NHINDAddress sender, NHINDAddressCollection recipients)
+	protected static Tx getTxToTrack(MimeMessage msg, InternetAddress sender, List<InternetAddress> recipients)
 	{		
 		return MessageUtils.getTxToTrack(msg, sender, recipients, txParser);
 	}
 	
-	protected static void sendDSN(Tx tx, NHINDAddressCollection undeliveredRecipeints, boolean useSenderAsPostmaster)
+	protected static void sendDSN(Tx tx, List<InternetAddress> undeliveredRecipeints, boolean useSenderAsPostmaster)
 	{
 		try
 		{
@@ -104,13 +102,13 @@ public class MailUtils
 	
 	protected static void sendMessageToStream(MimeMessage msg) throws Exception
 	{
-		final ImmutableList<MailAddress> recips = Arrays.asList(msg.getAllRecipients()).stream()
+		final List<MailAddress> recips = Arrays.asList(msg.getAllRecipients()).stream()
 	        	.map(Throwing.function(MailUtils::castToMailAddress).sneakyThrow())
-	        	.collect(Guavate.toImmutableList());
+	        	.toList();
 			
-			final Mail mail = MailImpl.builder()
+			final Mail mail = MailImpl.builder().name("DirectMailBuilder")
 					.sender(castToMailAddress(msg.getFrom()[0]))
-					.recipients(recips)
+					.addRecipients(recips)
 					.mimeMessage(msg).build();
 			
 			final SmtpGatewayMessageSource messageSource = SmtpGatewayMessageSource.getMessageSourceInstance();
