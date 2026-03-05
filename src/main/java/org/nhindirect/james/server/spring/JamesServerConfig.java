@@ -48,6 +48,7 @@ import org.apache.james.server.core.filesystem.FileSystemImpl;
 import org.nhind.config.rest.AddressService;
 import org.nhind.config.rest.DomainService;
 import org.nhindirect.config.model.Domain;
+import org.nhindirect.james.server.modules.CustomLuceneSearchMailboxModule;
 import org.nhindirect.james.server.modules.RESTDataServiceModule;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -241,7 +242,7 @@ public class JamesServerConfig
 	            new JPADataModule(),
 	            new JPAMailboxModule(),
 	            new MailboxModule(),
-	            new LuceneSearchMailboxModule(),
+	            new CustomLuceneSearchMailboxModule(),
 	            new NoJwtModule(),
 	            new RawPostDequeueDecoratorModule(),
 	            new SieveJPARepositoryModules(),
