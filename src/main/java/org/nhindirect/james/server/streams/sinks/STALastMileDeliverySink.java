@@ -61,15 +61,20 @@ public class STALastMileDeliverySink
 			
 			try
 			{
-				final Mail mail = MailImpl.builder().name("DirectMailBuilder")
+				final MailImpl mail = MailImpl.builder().name("DirectMailBuilder")
 						.sender(new MailAddress(smtpMessage.getMailFrom()))
 						.addRecipients(recips)
 						.mimeMessage(smtpMessage.getMimeMessage()).build();
 				
-				log.info("Processing last mile delivery for from {} to {} with message id {}", smtpMessage.getMailFrom().toString(), 
-						toRecipsPrettingString(recips), smtpMessage.getMimeMessage().getMessageID());
-				
-				StreamsTimelyAndReliableLocalDelivery.getStaticMailet().service(mail);
+				try {
+					log.info("Processing last mile delivery for from {} to {} with message id {}", smtpMessage.getMailFrom().toString(), 
+							toRecipsPrettingString(recips), smtpMessage.getMimeMessage().getMessageID());
+					
+					StreamsTimelyAndReliableLocalDelivery.getStaticMailet().service(mail);
+				}
+				finally {
+					mail.dispose();
+				}
 			}
 			catch (MessagingException e)
 			{
