@@ -106,16 +106,22 @@ public class MailUtils
 	        	.map(Throwing.function(MailUtils::castToMailAddress).sneakyThrow())
 	        	.toList();
 			
-			final Mail mail = MailImpl.builder().name("DirectMailBuilder")
+			final MailImpl mail = MailImpl.builder().name("DirectMailBuilder")
 					.sender(castToMailAddress(msg.getFrom()[0]))
 					.addRecipients(recips)
 					.mimeMessage(msg).build();
 			
-			final SmtpGatewayMessageSource messageSource = SmtpGatewayMessageSource.getMessageSourceInstance();
-			if (messageSource != null)
-			{
-				messageSource.forwardSMTPMessage(mailToSMTPMailMessage(mail));
+			try {
+				final SmtpGatewayMessageSource messageSource = SmtpGatewayMessageSource.getMessageSourceInstance();
+				if (messageSource != null)
+				{
+					messageSource.forwardSMTPMessage(mailToSMTPMailMessage(mail));
+				}
 			}
+			finally {
+				mail.dispose();
+			}
+			
 	}
 	
     public static MailAddress castToMailAddress(Address address) throws AddressException 
