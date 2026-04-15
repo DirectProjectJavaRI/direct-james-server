@@ -1,4 +1,9 @@
 spring:
+
+  threads:
+    virtual:
+      enabled: true
+
   cloud: 
     stream: 
       # Need to define an explicit source binding name since we are using a StreamBridge
