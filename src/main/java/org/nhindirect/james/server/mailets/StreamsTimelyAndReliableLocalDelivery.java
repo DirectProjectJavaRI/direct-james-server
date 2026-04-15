@@ -1,5 +1,6 @@
 package org.nhindirect.james.server.mailets;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -9,10 +10,13 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.james.core.MailAddress;
+import org.apache.james.core.Username;
 import org.apache.james.mailbox.MailboxManager;
 import org.apache.james.metrics.api.MetricFactory;
 import org.apache.james.transport.mailets.LocalDelivery;
 import org.apache.james.user.api.UsersRepository;
+import org.apache.james.user.api.UsersRepositoryException;
 import org.apache.mailet.Mail;
 import org.apache.mailet.Mailet;
 import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
@@ -38,11 +42,14 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 	
 	protected NotificationProducer notificationProducer;
 	
+	protected UsersRepository uRepo;
+	
 	@Inject
 	public StreamsTimelyAndReliableLocalDelivery(UsersRepository usersRepository, @Named("mailboxmanager") MailboxManager mailboxManager,
 			MetricFactory metricFactory)
 	{
 		super(usersRepository, mailboxManager, metricFactory);
+		uRepo = usersRepository;
          /*
 		 * Set the static reference used by the Spring Cloud streams processor (i.e. the processLastMileMessage() method).
 		 * Once this instance has been set, then notify any thread that is blocked.
@@ -84,10 +91,39 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 		final InternetAddress sender = MessageUtils.getMailSender(smtpMailMessage);
 		
 		
+		final List<InternetAddress> foundRecips = new ArrayList<>();
+		final List<MailAddress> foundRecipsMailAddr = new ArrayList<>();
+		final List<InternetAddress> unknownRecips = new ArrayList<>();
 		try
 		{
-			super.service(mail);
-			deliverySuccessful = true;
+
+			mail.getRecipients().stream().forEach(recip -> {
+				try {
+					Username uName = uRepo.getUsername(recip);
+					if (uRepo.contains(uName)) {
+						foundRecipsMailAddr.add(recip);
+						if (recip.toInternetAddress().isPresent())
+							foundRecips.add(recip.toInternetAddress().get()); 
+					}
+				
+					else
+						if (recip.toInternetAddress().isPresent())
+							unknownRecips.add(recip.toInternetAddress().get());
+				} catch (UsersRepositoryException e) {
+					if (recip.toInternetAddress().isPresent())
+						unknownRecips.add(recip.toInternetAddress().get());
+				}
+			});
+			
+			if (!foundRecips.isEmpty()) {
+				mail.setRecipients(foundRecipsMailAddr);
+				super.service(mail);
+				deliverySuccessful = true;
+			}
+			else
+				log.warn("No configured recipients accounts were found for message id, so delivery will fail.  Will bounce the message",
+						mail.getMessage().getMessageID());
+
 		}
 		catch (Exception e)
 		{
@@ -101,9 +137,9 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 			if (isReliableAndTimely && txToTrack.getMsgType() == TxMessageType.IMF)
 			{
 
-				// send back an MDN dispatched message
+				// send back an MDN dispatched message for the found recipients
 				final Collection<NotificationMessage> notifications = 
-						notificationProducer.produce(new Message(msg), recipients);
+						notificationProducer.produce(new Message(msg), foundRecips);
 				if (notifications != null && notifications.size() > 0)
 				{
 					log.debug("Sending MDN \"dispatched\" messages");
@@ -126,10 +162,20 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 					}
 				}
 			}
+			
+			// if there are any unknown recipients, then we need to bounce those
+			if (!unknownRecips.isEmpty() && txToTrack != null && txToTrack.getMsgType() == TxMessageType.IMF)
+			{
+				log.warn("Found unknown recipients.  Generating bounce messages for message id {} and recipients {}", 
+						mail.getMessage().getMessageID(), unknownRecips);
+				MailUtils.sendDSN(txToTrack, unknownRecips, false);
+			}
+				
 		}
 		else
 		{
-			// create a DSN message regarless if timely and reliable was requested
+			log.warn("Message delivery failed.  Generating bounce messages for message id {}", mail.getMessage().getMessageID());
+			// create a DSN message regardless if timely and reliable was requested for all recipients
 			if (txToTrack != null && txToTrack.getMsgType() == TxMessageType.IMF)
 				MailUtils.sendDSN(txToTrack, recipients, false);
 		}
