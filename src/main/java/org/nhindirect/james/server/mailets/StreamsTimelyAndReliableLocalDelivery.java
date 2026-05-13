@@ -7,6 +7,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -99,17 +100,24 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 
 			mail.getRecipients().stream().forEach(recip -> {
 				try {
-					Username uName = uRepo.getUsername(recip);
-					if (uRepo.contains(uName)) {
-						foundRecipsMailAddr.add(recip);
-						if (recip.toInternetAddress().isPresent())
-							foundRecips.add(recip.toInternetAddress().get()); 
+					// Normalize plus-addressed recipients (RFC 5233) for repository lookup and delivery
+					MailAddress normalizedRecip = recip;
+					String localPart = recip.getLocalPart();
+					if (localPart.contains("+")) {
+						String normalizedLocal = localPart.substring(0, localPart.indexOf("+"));
+						normalizedRecip = new MailAddress(normalizedLocal + "@" + recip.getDomain().asString());
 					}
-				
+					Username uName = uRepo.getUsername(normalizedRecip);
+					if (uRepo.contains(uName)) {
+						foundRecipsMailAddr.add(normalizedRecip);
+						if (recip.toInternetAddress().isPresent())
+							foundRecips.add(recip.toInternetAddress().get());
+					}
+
 					else
 						if (recip.toInternetAddress().isPresent())
 							unknownRecips.add(recip.toInternetAddress().get());
-				} catch (UsersRepositoryException e) {
+				} catch (UsersRepositoryException | AddressException e) {
 					if (recip.toInternetAddress().isPresent())
 						unknownRecips.add(recip.toInternetAddress().get());
 				}
