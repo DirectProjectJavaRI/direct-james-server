@@ -58,11 +58,23 @@
 				<artifactId>spring-cloud-dependencies</artifactId>
 				 <version>2025.1.2</version>
 				<type>pom</type>
-				<scope>import</scope>		
-			</dependency>		
+				<scope>import</scope>
+			</dependency>
+			<!-- Pinned below 2025.1.2's managed 5.0.2 to avoid https://github.com/spring-cloud/spring-cloud-stream/issues/3203
+			     (ClassCastException on output-only StreamBridge bindings). Remove once a fixed release is available. -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream</artifactId>
+				<version>5.0.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+				<version>5.0.1</version>
+			</dependency>
 			<dependency>
                 <groupId>org.apache.activemq</groupId>
-                <artifactId>activemq-broker</artifactId>	
+                <artifactId>activemq-broker</artifactId>
                 <version>${mq.version}</version>	
             </dependency>		
 			<dependency>
