@@ -32,7 +32,8 @@
             <algorithm>SunX509</algorithm>
             -->
         </tls>
-        <connectiontimeout>360</connectiontimeout>
+        <connectiontimeout>120</connectiontimeout>
+        <handler.connectiontimeout>120</handler.connectiontimeout>
         <connectionLimit>0</connectionLimit>
         <connectionLimitPerIP>0</connectionLimitPerIP>
         <authRequired>false</authRequired>
@@ -57,7 +58,8 @@
             <algorithm>SunX509</algorithm>
 
         </tls>
-        <connectiontimeout>360</connectiontimeout>
+        <handler.connectiontimeout>120</handler.connectiontimeout>
+        <connectiontimeout>120</connectiontimeout>
         <connectionLimit>0</connectionLimit>
         <connectionLimitPerIP>0</connectionLimitPerIP>
         <!--

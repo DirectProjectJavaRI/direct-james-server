@@ -3,6 +3,10 @@ package org.nhindirect.james.server.mailets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,6 +34,9 @@ import org.nhindirect.gateway.javaxcompat.smtp.ReliableDispatchedNotificationPro
 import org.nhindirect.gateway.javaxcompat.util.MessageUtils;
 import org.nhindirect.stagent.javaxcompat.mail.Message;
 import org.nhindirect.stagent.javaxcompat.mail.notifications.NotificationMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,20 +44,48 @@ import lombok.extern.slf4j.Slf4j;
 public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//TimelyAndReliableLocalDelivery
 {
 	
+	private static final Logger log = LoggerFactory.getLogger(StreamsTimelyAndReliableLocalDelivery.class);
+	
+	protected static final String DELAY_NOTIFICATION_HEADER = "X-Delay-Dispatched-MDN";
+	
+	protected static final String SUPRESS_NOTIFICATIONS_ADDRESSES = "SuppressNotificationsForAddresses";
+
 	protected static final String DISPATCHED_MDN_DELAY = "DispatchedMDNDelay";
-	
+
+	protected static final String DELAYED_DISPATCH_MDN_ADDRESSES = "DelayedDispatchMDNAddresses";
+
 	protected static StreamsTimelyAndReliableLocalDelivery mailetContextInstance;
-	
+
 	protected NotificationProducer notificationProducer;
-	
+
 	protected UsersRepository uRepo;
-	
+
+	protected List<String> suppressNotificationAddresses;
+
+	protected List<String> delayedDispatchMDNAddresses;
+
+	protected int dispatchedMDNDelay;
+
+	/*
+	 * Shared scheduler used to release delayed MDN "dispatched" notifications at a later time without
+	 * blocking the calling thread. Multiple messages may be pending release at any given time, each with
+	 * its own delay, which a ScheduledExecutorService handles natively.
+	 */
+	protected static final ScheduledExecutorService dispatchedMDNScheduler = Executors.newSingleThreadScheduledExecutor(r ->
+	{
+		final Thread t = new Thread(r, "dispatched-mdn-sender");
+		t.setDaemon(true);
+		return t;
+	});
+
 	@Inject
 	public StreamsTimelyAndReliableLocalDelivery(UsersRepository usersRepository, @Named("mailboxmanager") MailboxManager mailboxManager,
 			MetricFactory metricFactory)
 	{
 		super(usersRepository, mailboxManager, metricFactory);
 		uRepo = usersRepository;
+		
+	
          /*
 		 * Set the static reference used by the Spring Cloud streams processor (i.e. the processLastMileMessage() method).
 		 * Once this instance has been set, then notify any thread that is blocked.
@@ -74,6 +109,37 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 			return mailetContextInstance;
 		}
 	}
+
+	@Override
+    public void init() throws MessagingException {
+    	
+		super.init();
+		
+        String supressionAddresses = getInitParameter(SUPRESS_NOTIFICATIONS_ADDRESSES, "");
+
+        suppressNotificationAddresses  = StringUtils.hasText(supressionAddresses) ?
+        		List.of(supressionAddresses.split(",")) : List.of();
+
+        String delayedDispatchAddresses = getInitParameter(DELAYED_DISPATCH_MDN_ADDRESSES, "");
+
+        delayedDispatchMDNAddresses = StringUtils.hasText(delayedDispatchAddresses) ?
+        		List.of(delayedDispatchAddresses.split(",")) : List.of();
+
+        String sDispatchedDelay = getInitParameter(DISPATCHED_MDN_DELAY, "0");
+        
+		try
+		{
+			dispatchedMDNDelay = Integer.valueOf(sDispatchedDelay).intValue();
+		}
+		catch (NumberFormatException e)
+		{
+			// in case of parsing exceptions
+			dispatchedMDNDelay = 0;
+		}
+		
+		log.info("Suppression config for StreamsTimelyAndReliableLocalDelivery: \r\n\tsuppressNotificationAddresses: {}"
+				+ " \r\n\tdelayedDispatchMDNAddresses: {} \r\n\tdispatchedMDNDelay: {}", supressionAddresses, delayedDispatchAddresses, dispatchedMDNDelay);
+    }
 	
 	@Override
 	public void service(Mail mail) throws MessagingException 
@@ -145,9 +211,14 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 			if (isReliableAndTimely && txToTrack.getMsgType() == TxMessageType.IMF)
 			{
 
-				// send back an MDN dispatched message for the found recipients
-				final Collection<NotificationMessage> notifications = 
-						notificationProducer.produce(new Message(msg), foundRecips);
+				// send back an MDN dispatched message for the found recipients, excluding any recipient
+				// configured to have dispatched notifications suppressed
+				final List<InternetAddress> notificationRecips = foundRecips.stream()
+						.filter(recip -> !MailUtils.matchesAddress(recip, suppressNotificationAddresses))
+						.collect(Collectors.toList());
+
+				final Collection<NotificationMessage> notifications = notificationRecips.isEmpty() ? List.of()
+						: notificationProducer.produce(new Message(msg), notificationRecips);
 				if (notifications != null && notifications.size() > 0)
 				{
 					log.debug("Sending MDN \"dispatched\" messages");
@@ -157,8 +228,17 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 						try
 						{
 							message.saveChanges();
-							
-							MailUtils.sendMessageToStream(message);
+
+							// the notification's From header carries the recipient it was generated for
+							if (MailUtils.matchesFromAddress(message, delayedDispatchMDNAddresses)) {
+								int resolvedDelay = resolveDispatchedMDNDelay(msg);
+								
+								if (resolvedDelay > 0)
+									scheduleDelayedMDNDispatch(message, resolvedDelay);
+							}
+								
+							else
+								MailUtils.sendMessageToStream(message);
 						}
 						///CLOVER:OFF
 						catch (Throwable t)
@@ -176,7 +256,7 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 			{
 				log.warn("Found unknown recipients.  Generating bounce messages for message id {} and recipients {}", 
 						mail.getMessage().getMessageID(), unknownRecips);
-				MailUtils.sendDSN(txToTrack, unknownRecips, false);
+				MailUtils.sendDSN(txToTrack, unknownRecips, false, suppressNotificationAddresses);
 			}
 				
 		}
@@ -185,10 +265,58 @@ public class StreamsTimelyAndReliableLocalDelivery extends LocalDelivery//Timely
 			log.warn("Message delivery failed.  Generating bounce messages for message id {}", mail.getMessage().getMessageID());
 			// create a DSN message regardless if timely and reliable was requested for all recipients
 			if (txToTrack != null && txToTrack.getMsgType() == TxMessageType.IMF)
-				MailUtils.sendDSN(txToTrack, recipients, false);
+				MailUtils.sendDSN(txToTrack, recipients, false, suppressNotificationAddresses);
 		}
 		
 		log.debug("Exiting timely and reliable service method.");
-	}	
+	}
+
+	/*
+	 * Determines the delay, in milliseconds, to use for a delayed MDN "dispatched" notification.
+	 * If the originating message carries a valid DELAY_NOTIFICATION_HEADER value (in minutes), that
+	 * value takes precedence; otherwise the configured dispatchedMDNDelay (already in milliseconds) is used.
+	 */
+	protected int resolveDispatchedMDNDelay(MimeMessage msg) throws MessagingException
+	{
+		final String headerValue = msg.getHeader(DELAY_NOTIFICATION_HEADER, null);
+
+		if (StringUtils.hasText(headerValue))
+		{
+			try
+			{
+				// value of header is in minutes, so adjust to milliseconds
+				return Integer.parseInt(headerValue.trim()) * 60 * 1000;
+			}
+			catch (NumberFormatException e)
+			{
+				log.warn("Invalid value \"{}\" for header {}.  Falling back to configured dispatchedMDNDelay.",
+						headerValue, DELAY_NOTIFICATION_HEADER);
+			}
+		}
+
+		return dispatchedMDNDelay;
+	}
+
+	/*
+	 * Releases an MDN "dispatched" notification onto the stream after the given delay (in milliseconds)
+	 * has elapsed, without blocking the calling thread.
+	 */
+	protected void scheduleDelayedMDNDispatch(NotificationMessage message, int delay)
+	{
+		log.debug("Delaying dispatch of MDN message by {} ms", delay);
+
+		dispatchedMDNScheduler.schedule(() ->
+		{
+			try
+			{
+				MailUtils.sendMessageToStream(message);
+			}
+			catch (Throwable t)
+			{
+				// don't kill the process if this fails
+				log.error("Error sending delayed MDN dispatched message.", t);
+			}
+		}, delay, TimeUnit.MILLISECONDS);
+	}
 
 }

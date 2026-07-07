@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javax.mail.Address;
@@ -80,14 +81,28 @@ public class MailUtils
 		return MessageUtils.getTxToTrack(msg, sender, recipients, txParser);
 	}
 	
-	protected static void sendDSN(Tx tx, List<InternetAddress> undeliveredRecipeints, boolean useSenderAsPostmaster)
+	protected static void sendDSN(Tx tx, List<InternetAddress> undeliveredRecipeints, boolean useSenderAsPostmaster,
+			List<String> suppressNotificationAddresses)
 	{
 		try
 		{
+			// A generated DSN is always addressed back to the original sender, so suppression has to be
+			// decided against the failed recipients themselves (the addresses this list is meant to
+			// target) before the DSN is generated, not against the resulting DSN message's own headers.
+			final List<InternetAddress> notSuppressedRecipients = undeliveredRecipeints.stream()
+					.filter(recip -> !matchesAddress(recip, suppressNotificationAddresses))
+					.collect(Collectors.toList());
+
+			if (notSuppressedRecipients.isEmpty())
+			{
+				log.debug("All undelivered recipients are configured suppressed addresses; not generating a DSN notification");
+				return;
+			}
+
 			DSNCreator dsnCreator = DSNCreatorFactory.getFailedDeliverDSNCreator();
 			if (dsnCreator != null)
 			{
-				final Collection<MimeMessage> msgs = dsnCreator.createDSNFailure(tx, undeliveredRecipeints, useSenderAsPostmaster);
+				final Collection<MimeMessage> msgs = dsnCreator.createDSNFailure(tx, notSuppressedRecipients, useSenderAsPostmaster);
 				if (msgs != null && msgs.size() > 0)
 					for (MimeMessage msg : msgs)
 						sendMessageToStream(msg);
@@ -98,8 +113,82 @@ public class MailUtils
 			// don't kill the process if this fails
 			log.error("Error sending DSN failure message.", e);
 		}
-	}	
-	
+	}
+
+	/**
+	 * Normalizes an email address for comparison purposes by lower casing it and stripping any
+	 * plus-addressed (RFC 5233) suffix from the local part.
+	 */
+	protected static String normalizeAddress(String rawAddress)
+	{
+		if (rawAddress == null)
+			return null;
+
+		final String trimmed = rawAddress.trim();
+		final int atIdx = trimmed.indexOf('@');
+		if (atIdx < 0)
+			return trimmed.toLowerCase(Locale.ROOT);
+
+		String localPart = trimmed.substring(0, atIdx);
+		final String domainPart = trimmed.substring(atIdx);
+
+		final int plusIdx = localPart.indexOf('+');
+		if (plusIdx >= 0)
+			localPart = localPart.substring(0, plusIdx);
+
+		return (localPart + domainPart).toLowerCase(Locale.ROOT);
+	}
+
+	/**
+	 * Tests if the given address (case insensitive, plus-address aware) matches an address in the
+	 * provided address list.
+	 */
+	protected static boolean matchesAddress(InternetAddress address, List<String> addressList)
+	{
+		if (addressList == null || addressList.isEmpty() || address == null)
+			return false;
+
+		final String normalizedEmailAddr = normalizeAddress(address.getAddress());
+
+		for (String listAddr : addressList)
+		{
+			if (listAddr != null && !listAddr.trim().isEmpty() &&
+					normalizedEmailAddr.equalsIgnoreCase(normalizeAddress(listAddr)))
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Tests if the recipient this MDN "dispatched" notification concerns (i.e. the mailbox owner
+	 * generating it, carried in the From header) matches an address in the provided address list.
+	 */
+	protected static boolean matchesFromAddress(MimeMessage message, List<String> addressList)
+	{
+		if (addressList == null || addressList.isEmpty())
+			return false;
+
+		try
+		{
+			final Address[] fromAddrs = message.getFrom();
+			if (fromAddrs == null)
+				return false;
+
+			for (Address addr : fromAddrs)
+			{
+				if (addr instanceof InternetAddress && matchesAddress((InternetAddress) addr, addressList))
+					return true;
+			}
+		}
+		catch (MessagingException e)
+		{
+			log.warn("Could not read From address to check address list match", e);
+		}
+
+		return false;
+	}
+
 	protected static void sendMessageToStream(MimeMessage msg) throws Exception
 	{
 		final List<MailAddress> recips = Arrays.asList(msg.getAllRecipients()).stream()

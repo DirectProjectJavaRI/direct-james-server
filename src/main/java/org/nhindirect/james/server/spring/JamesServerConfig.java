@@ -204,9 +204,24 @@ public class JamesServerConfig
 	@Value("${james.server.config.smtp.configFile:}")
 	protected String smtpConfigFile;
 	
+	/*
+	 * Suppression of MDN notifications for configured addresses and delays of dispatched MDNs. Used
+	 * for testing purposes and various validation tooling scenarios.  Generally not used
+	 * in a production environment
+	 */
+	@Value("${direct.james.notifications.suppressNotificationsForAddresses:}")
+	protected String suppressNotificationAddresses;
+
+	@Value("${direct.james.notifications.dispatchedMDNDelay:}")
+	protected String dispatchedMDNDelay;
+
+	@Value("${direct.james.notifications.delayedDispatchMDNAddresses:}")
+	protected String delayedDispatchMDNAddresses;
+
 	@Autowired
 	protected DomainService domService;
 
+	
 	public static final Module PROTOCOLS;
 	public static final Module JPA_SERVER_MODULE;
 	public static final Module JPA_MODULE_AGGREGATE;
@@ -378,11 +393,13 @@ public class JamesServerConfig
 		 * Mailet config
 		 */
 		File writeFile = new File("conf/mailetcontainer.xml");
-		byte[] content = (StringUtils.isEmpty(mailetConfigFile)) ? IOUtils.resourceToByteArray(DEFAULT_MAILET_CONFIG) : FileUtils.readFileToByteArray(new File(mailetConfigFile));
+		String content = (StringUtils.isEmpty(mailetConfigFile)) ? IOUtils.resourceToString(DEFAULT_MAILET_CONFIG, Charset.defaultCharset()) : FileUtils.readFileToString(new File(mailetConfigFile), Charset.defaultCharset());
 		
+		content = content.replace("${suppressNotificationsAddresses}", this.suppressNotificationAddresses);
+		content = content.replace("${dispatchedMDNDelay}", this.dispatchedMDNDelay);
+		content = content.replace("${delayedDispatchMDNAddresses}", this.delayedDispatchMDNAddresses);
 		
-		
-		FileUtils.writeByteArrayToFile(writeFile, content);
+		FileUtils.write(writeFile, content, Charset.defaultCharset());
 		
 		
 	}
