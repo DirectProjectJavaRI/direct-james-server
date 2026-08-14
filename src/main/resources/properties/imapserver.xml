@@ -54,6 +54,7 @@
 	     <secret>${keystorePassword}</secret>
 	     <provider>org.bouncycastle.jce.provider.BouncyCastleProvider</provider>
 	   </tls>
+	   <plainAuthDisallowed>false</plainAuthDisallowed>
 	      
 	   <handler>
 	       <!-- This is the name used by the server to identify itself in the SMTP -->

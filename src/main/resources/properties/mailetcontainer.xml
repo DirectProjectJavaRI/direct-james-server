@@ -48,7 +48,6 @@
         <processor state="transport" enableJmx="true">
             <matcher name="relay-allowed" match="org.apache.james.mailetcontainer.impl.matchers.Or">
                 <matcher match="SMTPAuthSuccessful"/>
-                <matcher match="SMTPIsAuthNetwork"/>
                 <matcher match="SentByMailet"/>
             </matcher>
 
@@ -62,10 +61,6 @@
 
             <mailet match="All" class="org.nhindirect.james.server.mailets.ToStaAgentStream"/>
 
-
-            <mailet match="relay-allowed" class="ToProcessor">
-                <processor>relay</processor>
-            </mailet>
         </processor>
 
         <processor state="relay" enableJmx="true">
@@ -113,7 +108,11 @@
         </processor>
 
         <processor state="streams-deliver" enableJmx="true">
-            <mailet match="All" class="org.nhindirect.james.server.mailets.StreamsTimelyAndReliableLocalDelivery"/>
+            <mailet match="All" class="org.nhindirect.james.server.mailets.StreamsTimelyAndReliableLocalDelivery">
+               <SuppressNotificationsForAddresses>${suppressNotificationsAddresses}</SuppressNotificationsForAddresses>
+               <DispatchedMDNDelay>${dispatchedMDNDelay}</DispatchedMDNDelay>
+               <DelayedDispatchMDNAddresses>${delayedDispatchMDNAddresses}</DelayedDispatchMDNAddresses>
+            </mailet>
         </processor>
 
     </processors>

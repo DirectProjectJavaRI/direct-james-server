@@ -1,5 +1,6 @@
 package org.nhindirect.james.server.streams.sinks;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import javax.mail.MessagingException;
@@ -7,8 +8,8 @@ import javax.mail.MessagingException;
 import org.apache.james.core.MailAddress;
 import org.apache.james.server.core.MailImpl;
 import org.apache.mailet.Mail;
-import org.nhindirect.common.mail.SMTPMailMessage;
-import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
+import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
+import org.nhindirect.common.javaxcompat.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.mailets.MailUtils;
 import org.nhindirect.james.server.mailets.StreamsTimelyAndReliableLocalDelivery;
 import org.springframework.context.annotation.Bean;
@@ -16,8 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 
 import com.github.fge.lambdas.Throwing;
-import com.github.steveash.guavate.Guavate;
-import com.google.common.collect.ImmutableList;
+
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,21 +55,26 @@ public class STALastMileDeliverySink
 			 */
 			final SMTPMailMessage smtpMessage = SMTPMailMessageConverter.fromStreamMessage(streamMsg);
 			
-			final ImmutableList<MailAddress> recips = smtpMessage.getRecipientAddresses().stream()
+			final List<MailAddress> recips = smtpMessage.getRecipientAddresses().stream()
 	        	.map(Throwing.function(MailUtils::castToMailAddress).sneakyThrow())
-	        	.collect(Guavate.toImmutableList());
+	            .toList();
 			
 			try
 			{
-				final Mail mail = MailImpl.builder()
+				final MailImpl mail = MailImpl.builder().name("DirectMailBuilder")
 						.sender(new MailAddress(smtpMessage.getMailFrom()))
-						.recipients(recips)
+						.addRecipients(recips)
 						.mimeMessage(smtpMessage.getMimeMessage()).build();
 				
-				log.info("Processing last mile delivery for from {} to {} with message id {}", smtpMessage.getMailFrom().toString(), 
-						toRecipsPrettingString(recips), smtpMessage.getMimeMessage().getMessageID());
-				
-				StreamsTimelyAndReliableLocalDelivery.getStaticMailet().service(mail);
+				try {
+					log.info("Processing last mile delivery for from {} to {} with message id {}", smtpMessage.getMailFrom().toString(), 
+							toRecipsPrettingString(recips), smtpMessage.getMimeMessage().getMessageID());
+					
+					StreamsTimelyAndReliableLocalDelivery.getStaticMailet().service(mail);
+				}
+				finally {
+					mail.dispose();
+				}
 			}
 			catch (MessagingException e)
 			{
@@ -78,7 +83,7 @@ public class STALastMileDeliverySink
 		};
 	}
 	
-	protected String toRecipsPrettingString(ImmutableList<MailAddress> recips)
+	protected String toRecipsPrettingString(List<MailAddress> recips)
 	{
 		final String[] addrs = new String[recips.size()];
 		

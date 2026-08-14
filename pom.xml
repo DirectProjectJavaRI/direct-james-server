@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nhind</groupId>
 	<artifactId>direct-james-server</artifactId>
-	<version>8.1.0</version>
+	<version>9.0.0</version>
 	<packaging>jar</packaging>
 	<name>Direct Java RI James Spring Boot Application</name>
     <description>irect Java RI James Spring Boot Application</description>	
@@ -18,7 +18,7 @@
     <parent>
 	   <groupId>org.springframework.boot</groupId>
 	   <artifactId>spring-boot-starter-parent</artifactId>
-	   <version>2.5.2</version>
+	   <version>4.1.0</version>
 	   <relativePath />
     </parent>	
     <developers>
@@ -40,51 +40,93 @@
     </licenses>   
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<apache-james.version>3.2.0</apache-james.version>
-		<derby.version>10.14.2.0</derby.version>
-		<postgresql.version>42.2.5</postgresql.version>
-		<dropwizard.version>3.2.6</dropwizard.version>
-		<guice.version>4.2.2</guice.version>
-		<dnsjava.version>2.0.8</dnsjava.version>
+		<apache-james.version>3.8.2</apache-james.version>
+		<mq.version>5.17.3</mq.version>
+		<jetty-server.version>9.4.57.v20241219</jetty-server.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>											
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.5.2</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
 	        <dependency>
 	            <groupId>io.pivotal.spring.cloud</groupId>
 	            <artifactId>spring-cloud-services-dependencies</artifactId>
-	            <version>3.3.0</version>
+	            <version>4.4.1</version>
 	            <type>pom</type>
 	            <scope>import</scope>
 	        </dependency>				
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-parent</artifactId>
-				 <version>2020.0.3</version>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				 <version>2025.1.2</version>
 				<type>pom</type>
-				<scope>import</scope>		
+				<scope>import</scope>
+			</dependency>
+			<!-- Pinned below 2025.1.2's managed 5.0.2 to avoid https://github.com/spring-cloud/spring-cloud-stream/issues/3203
+			     (ClassCastException on output-only StreamBridge bindings). Remove once a fixed release is available. -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream</artifactId>
+				<version>5.0.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+				<version>5.0.1</version>
+			</dependency>
+			<dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-broker</artifactId>
+                <version>${mq.version}</version>	
+            </dependency>		
+			<dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-client</artifactId>	
+                <version>${mq.version}</version>	
+            </dependency>	
+			<dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-openwire-legacy</artifactId>	
+                <version>${mq.version}</version>	
+            </dependency>
+			<dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-kahadb-store</artifactId>	
+                <version>${mq.version}</version>	
+            </dependency>      
+			<dependency>
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-server</artifactId>
+			    <version>${jetty-server.version}</version>	    
+			</dependency>
+			<dependency>
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-http</artifactId>
+			    <version>${jetty-server.version}</version>	    
 			</dependency>	
 			<dependency>
-			    <groupId>io.dropwizard.metrics</groupId>
-			    <artifactId>metrics-core</artifactId>
-			    <version>${dropwizard.version}</version>
-			</dependency>		
-			<dependency>
-			    <groupId>io.dropwizard.metrics</groupId>
-			    <artifactId>metrics-jvm</artifactId>
-			    <version>${dropwizard.version}</version>
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-xml</artifactId>
+			    <version>${jetty-server.version}</version>	    
 			</dependency>	
 			<dependency>
-			    <groupId>dnsjava</groupId>
-			    <artifactId>dnsjava</artifactId>
-			    <version>${dnsjava.version}</version>
-			</dependency>																								
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-security</artifactId>
+			    <version>${jetty-server.version}</version>	    
+			</dependency>	
+			<dependency>
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-client</artifactId>
+			    <version>${jetty-server.version}</version>	    
+			</dependency>	
+			<dependency>
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-util</artifactId>
+			    <version>${jetty-server.version}</version>	    
+			</dependency>	
+			<dependency>
+			    <groupId>org.eclipse.jetty</groupId>
+			    <artifactId>jetty-io</artifactId>
+			    <version>${jetty-server.version}</version>	    
+			</dependency>																 				                  	                            																				
 		</dependencies>
 	</dependencyManagement>		
 	<dependencies>          	        
@@ -136,12 +178,7 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-test</artifactId>
 		    <scope>test</scope>
-		</dependency>	    		 			
-		<dependency>
-		    <groupId>com.google.inject</groupId>
-		    <artifactId>guice</artifactId>
-		    <version>${guice.version}</version>
-		</dependency>	   	
+		</dependency>	    		 			   	
 	    <dependency>
 	      <groupId>io.pivotal.spring.cloud</groupId>
 	      <artifactId>spring-cloud-services-starter-config-client</artifactId>
@@ -164,49 +201,28 @@
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>config-service-client</artifactId>
-	        <version>8.1.0</version>
-	    </dependency>	
-
-		<dependency>
-			<groupId>org.nhind</groupId>
-			<artifactId>gateway</artifactId>
-			<version>8.1.0</version>	
-		    <exclusions>
-		        <exclusion>
-		            <groupId>org.nhind</groupId>
-		            <artifactId>direct-common-audit</artifactId>
-		        </exclusion>	
-		        <exclusion>
-		            <groupId>org.apache.james</groupId>
-		            <artifactId>*</artifactId>
-		        </exclusion>			        	        
-		    </exclusions>				
-		</dependency>	
+	        <version>9.0.0</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.nhind</groupId>
+	        <artifactId>direct-javax-compat</artifactId>
+	        <version>9.0.0</version>
+	    </dependency>	    
 		<dependency>
 		    <groupId>org.apache.james</groupId>
-		    <artifactId>apache-mailet-api</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>	
+		    <artifactId>james-server-mailets</artifactId>
+		    <version>${apache-james.version}</version>	    
+		</dependency>							
 		<dependency>
 		    <groupId>org.apache.james</groupId>
-		    <artifactId>apache-mailet-base</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>			
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>apache-mailet-standard</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>				
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-core</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-jpa-guice</artifactId>
+		    <artifactId>james-server-jpa-common-guice</artifactId>
 		    <version>${apache-james.version}</version>
 		</dependency>		    
+        <dependency>
+            <groupId>org.apache.james</groupId>
+            <artifactId>james-server-data-jpa</artifactId>
+            <version>${apache-james.version}</version>
+        </dependency>	
 		<dependency>
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-common</artifactId>
@@ -238,11 +254,6 @@
 		</dependency>	
 		<dependency>
 		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-guice-managedsieve</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>	
-		<dependency>
-		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-smtp</artifactId>
 		    <version>${apache-james.version}</version>
 		</dependency>	
@@ -255,32 +266,37 @@
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-mailbox</artifactId>
 		    <version>${apache-james.version}</version>
-		</dependency>				
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-guice-activemq</artifactId>
-		    <version>${apache-james.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-guice-es-resporter</artifactId>
+		    <artifactId>james-server-guice-mailbox-jpa</artifactId>
 		    <version>${apache-james.version}</version>
 		</dependency>	
 		<dependency>
 		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-guice-mailbox-plugin-spamassassin</artifactId>
+		    <artifactId>james-server-guice-jmap</artifactId>
 		    <version>${apache-james.version}</version>
-		</dependency>		
-		<dependency>
+		</dependency>				
+        <dependency>
 		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-jpa-common-guice</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>		
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>metrics-dropwizard</artifactId>
-		    <version>${apache-james.version}</version>
-		</dependency>
+            <artifactId>queue-activemq-guice</artifactId>
+            <version>${apache-james.version}</version>
+        </dependency>	
+        <dependency>
+            <groupId>org.apache.james</groupId>
+            <artifactId>james-server-guice-data-ldap</artifactId>
+            <version>${apache-james.version}</version>
+        </dependency>	
+        <dependency>
+            <groupId>org.apache.james</groupId>
+            <artifactId>james-server-guice-sieve-jpa</artifactId>
+            <version>${apache-james.version}</version>
+        </dependency>  
+        <dependency>
+            <groupId>org.apache.james</groupId>
+            <artifactId>james-server-guice-managedsieve</artifactId>
+            <version>${apache-james.version}</version>
+        </dependency>              	
 		<dependency>
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-webadmin</artifactId>
@@ -305,11 +321,6 @@
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-guice-webadmin-mailrepository</artifactId>
 		    <version>${apache-james.version}</version>
-		</dependency>	
-		<dependency>
-		    <groupId>org.apache.james</groupId>
-		    <artifactId>james-server-guice-webadmin-swagger</artifactId>
-		    <version>${apache-james.version}</version>
 		</dependency>																																							    
 		 <!--  Database Drivers For Connectivity Options --> 		             	    
 		<dependency>
@@ -318,34 +329,29 @@
 			<scope>runtime</scope>	  		    
 		</dependency>	
 		<dependency>
-		    <groupId>org.mariadb.jdbc</groupId>
-		    <artifactId>mariadb-java-client</artifactId>
-			<scope>runtime</scope>	  		    
-		</dependency>	
-	    <dependency>
-	        <groupId>org.apache.derby</groupId>
-	        <artifactId>derby</artifactId>
-	        <version>${derby.version}</version>
-			<scope>runtime</scope>	  	        
-	    </dependency>	
-		<dependency>
-		    <groupId>mysql</groupId>
-		    <artifactId>mysql-connector-java</artifactId>
-			<scope>runtime</scope>	  		    
-		</dependency>	
+		    <groupId>com.mysql</groupId>
+		    <artifactId>mysql-connector-j</artifactId>
+		</dependency>
 		<dependency>
 		    <groupId>org.postgresql</groupId>
 		    <artifactId>postgresql</artifactId>
-		    <version>${postgresql.version}</version>
 			<scope>runtime</scope>	  		    
 		</dependency>
+	    <dependency>
+	        <groupId>org.apache.derby</groupId>
+	        <artifactId>derby</artifactId>
+			<scope>runtime</scope>	  	        
+	    </dependency>	
+		<dependency>
+		    <groupId>org.apache.derby</groupId>
+		    <artifactId>derbytools</artifactId>
+		    <scope>runtime</scope>
+		</dependency>  		
 		<dependency>
 		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-stream</artifactId>
-		    <type>test-jar</type>
+		    <artifactId>spring-cloud-stream-test-binder</artifactId>
 		    <scope>test</scope>
-		    <classifier>test-binder</classifier>
-		</dependency>				    	    									        	 	            		
+		</dependency>			    	    									        	 	            		
 	</dependencies>
 	<build>
 		<plugins>
@@ -376,8 +382,8 @@
 					<optimize>true</optimize>
 					<showDeprecation>true</showDeprecation>
 					<encoding>UTF-8</encoding>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>		      		
 			<plugin>
@@ -388,8 +394,8 @@
 		            -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
 		          </jvmArguments>          
 		        </configuration>				
-			</plugin>	
-			<!--  					
+			</plugin>
+			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -399,7 +405,7 @@
 					<charset>UTF-8</charset>
 					<docencoding>UTF-8</docencoding>
 					<docfilessubdirs>true</docfilessubdirs>
-					<source>1.8</source>
+					<source>17</source>
 					<show>public</show>
 					<failOnError>false</failOnError>
 				</configuration>
@@ -411,8 +417,8 @@
 	                  <goal>jar</goal>
 	                </goals>
 	              </execution>
-	            </executions>					
-			</plugin>		
+	            </executions>
+			</plugin>
 	        <plugin>
                <groupId>org.apache.maven.plugins</groupId>
                <artifactId>maven-gpg-plugin</artifactId>
@@ -425,8 +431,8 @@
                     </goals>
                  </execution>
                </executions>
-            </plugin>	
-            -->		
+            </plugin>
+            -->
 	        <plugin>
 	          <groupId>org.sonatype.central</groupId>
 	          <artifactId>central-publishing-maven-plugin</artifactId>
@@ -454,7 +460,7 @@
 					<docfilessubdirs>true</docfilessubdirs>
 					<detectJavaApiLink>true</detectJavaApiLink>
 					<detectLinks>true</detectLinks>
-					<source>1.8</source>
+					<source>17</source>
 					<show>public</show>
 				</configuration>
 			</plugin>
@@ -462,7 +468,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<configuration>
-					<targetJdk>1.8</targetJdk>
+					<targetJdk>17</targetJdk>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -472,7 +478,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
-				<version>3.1.1</version>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
