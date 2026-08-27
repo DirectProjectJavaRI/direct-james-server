@@ -18,7 +18,7 @@
     <parent>
 	   <groupId>org.springframework.boot</groupId>
 	   <artifactId>spring-boot-starter-parent</artifactId>
-	   <version>4.1.0</version>
+	   <version>4.1.1</version>
 	   <relativePath />
     </parent>	
     <developers>
@@ -56,21 +56,9 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
-				 <version>2025.1.2</version>
+				 <version>2025.1.3</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<!-- Pinned below 2025.1.2's managed 5.0.2 to avoid https://github.com/spring-cloud/spring-cloud-stream/issues/3203
-			     (ClassCastException on output-only StreamBridge bindings). Remove once a fixed release is available. -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-stream</artifactId>
-				<version>5.0.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-				<version>5.0.1</version>
 			</dependency>
 			<dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -201,12 +189,12 @@
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>config-service-client</artifactId>
-	        <version>9.0.0</version>
+	        <version>9.0.1-SNAPSHOT</version>
 	    </dependency>
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>direct-javax-compat</artifactId>
-	        <version>9.0.0</version>
+	        <version>9.0.1-SNAPSHOT</version>
 	    </dependency>	    
 		<dependency>
 		    <groupId>org.apache.james</groupId>
