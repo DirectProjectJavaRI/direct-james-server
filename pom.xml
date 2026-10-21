@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.nhind</groupId>
 	<artifactId>direct-james-server</artifactId>
-	<version>9.0.1-SNAPSHOT</version>
+	<version>9.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Direct Java RI James Spring Boot Application</name>
     <description>irect Java RI James Spring Boot Application</description>	
@@ -189,22 +189,22 @@
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>config-service-client</artifactId>
-	        <version>9.0.1-SNAPSHOT</version>
+	        <version>9.1.0-SNAPSHOT</version>
 	    </dependency>
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>agent</artifactId>
-	        <version>9.0.1-SNAPSHOT</version>
+	        <version>9.1.0-SNAPSHOT</version>
 	    </dependency>
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>direct-common</artifactId>
-	        <version>9.0.1-SNAPSHOT</version>
+	        <version>9.1.0-SNAPSHOT</version>
 	    </dependency>
 	    <dependency>
 	        <groupId>org.nhind</groupId>
 	        <artifactId>direct-gateway-common</artifactId>
-	        <version>9.0.1-SNAPSHOT</version>
+	        <version>9.1.0-SNAPSHOT</version>
 	    </dependency>
 		<dependency>
 		    <groupId>org.apache.james</groupId>
