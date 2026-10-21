@@ -3,7 +3,7 @@ package org.nhindirect.james.server.data;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.james.core.Domain;
 import org.apache.james.dnsservice.api.DNSService;

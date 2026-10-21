@@ -6,18 +6,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMessage.RecipientType;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
-import org.nhindirect.common.javaxcompat.mail.streams.SMTPMailMessageConverter;
+import org.nhindirect.common.mail.SMTPMailMessage;
+import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.SpringBaseTest;
 
 @Disabled

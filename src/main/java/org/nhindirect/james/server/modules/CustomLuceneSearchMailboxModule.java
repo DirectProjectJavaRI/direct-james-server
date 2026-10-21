@@ -43,6 +43,6 @@ public class CustomLuceneSearchMailboxModule extends AbstractModule {
         		fileSystem.getBasedir().getAbsolutePath() + LUCENE_SUBDIR :
         			fileSystem.getBasedir().getAbsolutePath() + File.separator + LUCENE_SUBDIR;
         			
-        return FSDirectory.open(new File(filePath));
+        return FSDirectory.open(new File(filePath).toPath());
     }
 }

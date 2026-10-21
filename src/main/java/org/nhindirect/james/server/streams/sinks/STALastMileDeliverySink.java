@@ -3,13 +3,13 @@ package org.nhindirect.james.server.streams.sinks;
 import java.util.List;
 import java.util.function.Consumer;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.apache.james.core.MailAddress;
 import org.apache.james.server.core.MailImpl;
 import org.apache.mailet.Mail;
-import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
-import org.nhindirect.common.javaxcompat.mail.streams.SMTPMailMessageConverter;
+import org.nhindirect.common.mail.SMTPMailMessage;
+import org.nhindirect.common.mail.streams.SMTPMailMessageConverter;
 import org.nhindirect.james.server.mailets.MailUtils;
 import org.nhindirect.james.server.mailets.StreamsTimelyAndReliableLocalDelivery;
 import org.springframework.context.annotation.Bean;

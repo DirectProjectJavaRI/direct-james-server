@@ -40,7 +40,7 @@
     </licenses>   
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<apache-james.version>3.8.2</apache-james.version>
+		<apache-james.version>3.9.1</apache-james.version>
 		<mq.version>5.17.3</mq.version>
 		<jetty-server.version>9.4.57.v20241219</jetty-server.version>
 	</properties>
@@ -193,9 +193,19 @@
 	    </dependency>
 	    <dependency>
 	        <groupId>org.nhind</groupId>
-	        <artifactId>direct-javax-compat</artifactId>
+	        <artifactId>agent</artifactId>
 	        <version>9.0.1-SNAPSHOT</version>
-	    </dependency>	    
+	    </dependency>
+	    <dependency>
+	        <groupId>org.nhind</groupId>
+	        <artifactId>direct-common</artifactId>
+	        <version>9.0.1-SNAPSHOT</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.nhind</groupId>
+	        <artifactId>direct-gateway-common</artifactId>
+	        <version>9.0.1-SNAPSHOT</version>
+	    </dependency>
 		<dependency>
 		    <groupId>org.apache.james</groupId>
 		    <artifactId>james-server-mailets</artifactId>

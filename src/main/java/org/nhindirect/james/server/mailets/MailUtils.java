@@ -7,23 +7,26 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import javax.mail.Address;
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Address;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 import org.apache.james.core.MailAddress;
 import org.apache.james.server.core.MailImpl;
 import org.apache.mailet.Mail;
-import org.nhindirect.common.javaxcompat.mail.SMTPMailMessage;
-import org.nhindirect.common.javaxcompat.tx.TxDetailParser;
-import org.nhindirect.common.javaxcompat.tx.impl.DefaultTxDetailParser;
+import org.nhindirect.common.mail.SMTPMailMessage;
+import org.nhindirect.common.tx.TxDetailParser;
+import org.nhindirect.common.tx.impl.DefaultTxDetailParser;
 import org.nhindirect.common.tx.model.Tx;
-import org.nhindirect.gateway.javaxcompat.smtp.dsn.DSNCreator;
-import org.nhindirect.gateway.javaxcompat.util.MessageUtils;
+import org.nhindirect.gateway.smtp.dsn.DSNCreator;
+import org.nhindirect.james.server.util.MessageUtils;
 import org.nhindirect.james.server.spring.DSNCreatorFactory;
 import org.nhindirect.james.server.streams.SmtpGatewayMessageSource;
+import org.nhindirect.stagent.AddressSource;
+import org.nhindirect.stagent.NHINDAddress;
+import org.nhindirect.stagent.NHINDAddressCollection;
 
 import com.github.fge.lambdas.Throwing;
 import com.google.common.base.Preconditions;
@@ -102,7 +105,10 @@ public class MailUtils
 			DSNCreator dsnCreator = DSNCreatorFactory.getFailedDeliverDSNCreator();
 			if (dsnCreator != null)
 			{
-				final Collection<MimeMessage> msgs = dsnCreator.createDSNFailure(tx, notSuppressedRecipients, useSenderAsPostmaster);
+				final NHINDAddressCollection failedRecipients = new NHINDAddressCollection();
+				notSuppressedRecipients.forEach(recip -> failedRecipients.add(new NHINDAddress(recip, AddressSource.RcptTo)));
+
+				final Collection<MimeMessage> msgs = dsnCreator.createDSNFailure(tx, failedRecipients, useSenderAsPostmaster);
 				if (msgs != null && msgs.size() > 0)
 					for (MimeMessage msg : msgs)
 						sendMessageToStream(msg);

@@ -19,7 +19,6 @@ import org.apache.james.modules.data.SieveJPARepositoryModules;
 import org.apache.james.modules.queue.activemq.ActiveMQQueueModule;
 import org.apache.james.modules.mailbox.DefaultEventModule;
 import org.apache.james.modules.mailbox.JPAMailboxModule;
-import org.apache.james.modules.mailbox.LuceneSearchMailboxModule;
 import org.apache.james.modules.mailbox.MemoryDeadLetterModule;
 import org.apache.james.modules.protocols.IMAPServerModule;
 import org.apache.james.modules.protocols.LMTPServerModule;
