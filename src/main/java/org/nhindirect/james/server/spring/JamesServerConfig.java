@@ -48,6 +48,7 @@ import org.nhind.config.rest.AddressService;
 import org.nhind.config.rest.DomainService;
 import org.nhindirect.config.model.Domain;
 import org.nhindirect.james.server.modules.CustomLuceneSearchMailboxModule;
+import org.nhindirect.james.server.modules.WebAdminBasicAuthModule;
 import org.nhindirect.james.server.modules.RESTDataServiceModule;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -308,7 +309,8 @@ public class JamesServerConfig
 		final GuiceJamesServer server =  GuiceJamesServer.forConfiguration(configuration)
                 .combineWith(JPA_MODULE_AGGREGATE, new RESTDataServiceModule(domService, addrService))
                 .combineWith(new UsersRepositoryModuleChooser(new JPAUsersRepositoryModule())
-                    .chooseModules(UsersRepositoryModuleChooser.Implementation.parse(configurationProvider)));
+                    .chooseModules(UsersRepositoryModuleChooser.Implementation.parse(configurationProvider)))
+                .overrideWith(new WebAdminBasicAuthModule(webAdminUser, webAdminPassword));
         
 		
 		

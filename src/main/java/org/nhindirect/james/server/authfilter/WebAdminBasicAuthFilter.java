@@ -4,7 +4,6 @@ import static spark.Spark.halt;
 
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.codec.binary.Base64;
@@ -18,70 +17,75 @@ public class WebAdminBasicAuthFilter implements AuthenticationFilter
 {
     public static final String AUTHORIZATION_HEADER_NAME = "Authorization";
     public static final String AUTHORIZATION_HEADER_PREFIX = "Basic ";
+    public static final String AUTHENTICATE_HEADER_NAME = "WWW-Authenticate";
+    public static final String AUTHENTICATE_HEADER_VALUE = "Basic realm=\"James WebAdmin\"";
     public static final String OPTIONS = "OPTIONS";
-    
+
 	protected final String user;
 	protected final byte[] passHash;
-	protected final MessageDigest digest;
-	
+
 	public WebAdminBasicAuthFilter(String user, String pass)
 	{
-		try
-		{
-			digest = MessageDigest.getInstance("SHA-256");
-		
-			this.user = user;
-			this.passHash = digest.digest(pass.getBytes(Charset.defaultCharset()));
-		}
-		catch (Exception e)
-		{
-			throw new IllegalStateException("Error creating webadmin password hash: " + e.getMessage());
-		}
+		this.user = user;
+		this.passHash = hash(pass);
 	}
-	
+
     @Override
-    public void handle(Request request, Response response) throws Exception 
+    public void handle(Request request, Response response) throws Exception
     {
-        if (request.requestMethod() != OPTIONS) 
+        if (!OPTIONS.equals(request.requestMethod()))
         {
             Optional<String> basicAuth = Optional.ofNullable(request.headers(AUTHORIZATION_HEADER_NAME))
                 .filter(value -> value.startsWith(AUTHORIZATION_HEADER_PREFIX))
                 .map(value -> value.substring(AUTHORIZATION_HEADER_PREFIX.length()));
 
-            checkHeaderPresent(basicAuth);
-            
-            final String[] subjectAndSecret = new String(Base64.decodeBase64(basicAuth.get()), Charset.defaultCharset()).split(":");
-            final String user = subjectAndSecret[0];
-            final String pass = subjectAndSecret[1];
-            
-            checkValidPass(pass);
-            checkIsAdmin(user);            
+            checkHeaderPresent(response, basicAuth);
+
+            // limit the split to 2 so passwords containing ':' are preserved
+            final String[] subjectAndSecret = new String(Base64.decodeBase64(basicAuth.get()), Charset.defaultCharset()).split(":", 2);
+            if (subjectAndSecret.length != 2)
+                reject(response, "Invalid Basic Auth header.");
+
+            checkValidPass(response, subjectAndSecret[1]);
+            checkIsAdmin(response, subjectAndSecret[0]);
         }
     }
-    
-    private void checkHeaderPresent(Optional<String> basicAuth) 
+
+    private static byte[] hash(String value)
     {
-        if (!basicAuth.isPresent()) 
-        {
-            halt(HttpStatus.UNAUTHORIZED_401, "No Basic Auth header.");
-        }
+		try
+		{
+			// MessageDigest instances are not thread safe, so use a new one for each hash
+			return MessageDigest.getInstance("SHA-256").digest(value.getBytes(Charset.defaultCharset()));
+		}
+		catch (Exception e)
+		{
+			throw new IllegalStateException("Error creating webadmin password hash: " + e.getMessage());
+		}
     }
-    
-    private void checkIsAdmin(String user) 
+
+    private void reject(Response response, String message)
+    {
+        response.header(AUTHENTICATE_HEADER_NAME, AUTHENTICATE_HEADER_VALUE);
+        halt(HttpStatus.UNAUTHORIZED_401, message);
+    }
+
+    private void checkHeaderPresent(Response response, Optional<String> basicAuth)
+    {
+        if (!basicAuth.isPresent())
+            reject(response, "No Basic Auth header.");
+    }
+
+    private void checkIsAdmin(Response response, String user)
     {
         if (user.compareToIgnoreCase(this.user) != 0)
-        {
-            halt(HttpStatus.UNAUTHORIZED_401, "Non authorized user.");
-        }
+            reject(response, "Non authorized user.");
     }
-    
-    private void checkValidPass(String pass) 
+
+    private void checkValidPass(Response response, String pass)
     {
-    	final byte[] passDigest = digest.digest(pass.getBytes(Charset.defaultCharset()));
-    	
-        if (!Objects.deepEquals(passDigest, this.passHash))
-        {
-            halt(HttpStatus.UNAUTHORIZED_401, "Invalid login.");
-        }
-    }    
+        // constant time comparison
+        if (!MessageDigest.isEqual(hash(pass), this.passHash))
+            reject(response, "Invalid login.");
+    }
 }
