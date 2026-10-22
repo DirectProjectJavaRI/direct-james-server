@@ -5,6 +5,8 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 
+import org.apache.james.mailbox.extractor.TextExtractor;
+import org.apache.james.mailbox.store.extractor.DefaultTextExtractor;
 import org.apache.james.mailbox.store.search.MessageSearchIndex;
 
 import java.io.File;
@@ -26,6 +28,7 @@ public class CustomLuceneSearchMailboxModule extends AbstractModule {
     protected void configure() {
         install(new ReIndexingTaskSerializationModule());
 
+        bind(TextExtractor.class).to(DefaultTextExtractor.class).in(Scopes.SINGLETON);
         bind(LuceneMessageSearchIndex.class).in(Scopes.SINGLETON);
         bind(MessageSearchIndex.class).to(LuceneMessageSearchIndex.class);
         bind(ListeningMessageSearchIndex.class).to(LuceneMessageSearchIndex.class);
